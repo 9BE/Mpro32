@@ -306,8 +306,8 @@ inline void setupSPIFFiles(bool freshSetup) {
 		locSpiff->appendFile("/ssid.txt", "sta,ideapad,sawabatik1\n");
 		locSpiff->appendFile("/ssid.txt", "sta,AndroidAP,efdx6532\n");
 		locSpiff->appendFile("/ssid.txt", "sta,GF_Wifi_2.4GHz,Gr33nF1nd3r2018\n");
-		locSpiff->appendFile("/ssid.txt", "ap,TestZippy,123qweasd\n");
-//		locSpiff->appendFile("/ssid.txt", "ap,GreenFinderIOT,0xadezcsw1\n");
+//		locSpiff->appendFile("/ssid.txt", "ap,TestZippy,123qweasd\n");
+		locSpiff->appendFile("/ssid.txt", "ap,GreenFinderIOT,0xadezcsw1\n");
 	}
 
 	info = locSpiff->getInfo("/n.txt");
