@@ -142,9 +142,12 @@ void ServerTempatan::StatusViaWiFi() {
 	msg += iniServer->_oMando->rawBattery;
 	msg += ")</br>";
 //
-//	msg += "RSSI = ";
-//	msg += String(rssi);
-//	msg += "</br>";
+	msg += "RSSI = ";
+	msg += String(rssi);
+	msg += "</br>";
+	msg += "WiFi tx power = ";
+	msg += (int) WiFi.getTxPower();
+	msg += "</br>";
 //	msg += "Actual = " + String(Ais.actual) + "</br>";
 ////	msg += "Temp = " + String((temprature_sens_read() - 32) / 1.8) + "</br>";
 	msg += "Activity = ";
@@ -167,6 +170,9 @@ void ServerTempatan::StatusViaWiFi() {
 	msg += "Lantern Status = ";
 	msg += wkl;
 	msg += "</br>";
+	msg += "Normalize = ";
+	msg += iniServer->_oLantern->_nyalaNormal;
+	msg += "</br>";
 	msg += "Lantern nyala = ";
 	msg += iniServer->_oMando->M6data.LNyala;
 	msg += "</br>";
@@ -178,8 +184,14 @@ void ServerTempatan::StatusViaWiFi() {
 //	msg += iniServer->AppCommPort;
 //	msg += "</br>";
 	msg += ">>> MANDO >>> </br>";
+	msg += "Aton Bit = ";
+	msg += iniServer->_oMando->ProcAtonbit_prev;
+	msg += "</br>";
 	msg += "Kali hantar msg 6 = ";
 	msg += iniServer->_oMando->_kaliHantarM6;
+	msg += "</br>";
+	msg += "ABM = ";
+	msg += iniServer->_oMando->_abm;
 	msg += "</br>";
 	msg += "Last msg21 = ";
 	msg += (millis() - iniServer->_oMando->agoM21) / 1000;
@@ -314,10 +326,10 @@ String ServerTempatan::makeJson() {
 		String mmnntah;
 		// patadaa
 		if (!_oLantern->askLantern3) {
-			if (_oTiming->ZoneTime == 0)       mmnntah = "Night";
-			else if (_oTiming->ZoneTime == 1)  mmnntah = "Dawn";
-			else if (_oTiming->ZoneTime == 2)  mmnntah = "Daylight";
-			else if (_oTiming->ZoneTime == 3)  mmnntah = "Dusk";
+			if (_oTiming->ZoneTime == e_nite)       mmnntah = "Night";
+			else if (_oTiming->ZoneTime == e_dawn)  mmnntah = "Dawn";
+			else if (_oTiming->ZoneTime == e_day)  mmnntah = "Daylight";
+			else if (_oTiming->ZoneTime == e_dusk)  mmnntah = "Dusk";
 			jkl += mmnntah;
 		}
 
@@ -349,20 +361,17 @@ String ServerTempatan::makeJson() {
 		wkl += ";";
 		wkl += String(_oMando->tmpLng, 4);
 		if (_oMando->M6data.ProcOffPositionStatus) {
-			wkl += "\nYes";
+			wkl += "\nOff position";
 		}else {
-			wkl += "\nNo";
+			wkl += "\nOn position";
 		}
 	}
 	else {
 		wkl = "Not Found";
-		wkl += "\n";
-		wkl += "\n";
-		wkl += "Not Found";
 	}
 
 
-	jsonHandler->tambahRow(rows, "1", "2", "Comm AIS\nGPS\n\nOff position", AppCommPort + "\n" + wkl);
+	jsonHandler->tambahRow(rows, "1", "2", "Comm AIS\nGPS", AppCommPort + "\n" + wkl);
 
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -389,7 +398,7 @@ String ServerTempatan::makeJson() {
 //	if (((_oMando->_masaMando + 30000) - millis())/1000 =)
 
 
-	jsonHandler->tambahRow(rows, "1", "2", "V AIS\nS/N\nM21/06 ago\nNext M06", String(_oMando->M6data.MVin, 2) + "\n" + _oMando->MSerialNumber + "\n" + kkkkk + "/" + nnnnn);
+	jsonHandler->tambahRow(rows, "1", "2", "V AIS\nS/N\nAton Bit\nM21/06 ago\nNext M06", String(_oMando->M6data.MVin, 2) + "\n" + _oMando->MSerialNumber + "\n" + _oMando->ProcAtonbit_prev + "\n" + kkkkk + "/" + nnnnn);
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//////////////// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< LANTERN >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ////////////////
@@ -604,7 +613,7 @@ String ServerTempatan::makeJson() {
 	jsonHandler->tambahRow(rows, "2", "4", "Dest. ID", _oMando->SpiffsData.Dest_ID);
 	jsonHandler->tambahRow(rows, "2", "6", "UTC Offset", _oMando->SpiffsData.UTC_Offset);
 	if (strcmp(_oMando->SpiffsData.Format.c_str(), "GF-SC35")) {
-		jsonHandler->tambahRow(rows, "2", "0", "LANTERN - GF-SC35", "");
+		jsonHandler->tambahRow(rows, "2", "0", "LANTERN - GF-LR-*", "");
 		jsonHandler->tambahRow(rows, "2", "7", "RACON Mon.", jsonHandler->cariDanTukar(JSONMonitorRACON, ',', _oMando->SpiffsData.RACON_Mon));
 		jsonHandler->tambahRow(rows, "2", "7", "Use LDR", jsonHandler->cariDanTukar(JSONUseLDR, ',', _oMando->SpiffsData.Use_LDR));
 		jsonHandler->tambahRow(rows, "2", "7", "Light Detect Method", jsonHandler->cariDanTukar(JSONLightMode, ',', _oMando->SpiffsData.Light_Detect_Method));

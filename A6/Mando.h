@@ -33,7 +33,7 @@ enum MandoTask {
 	cACE,
 	cACF,
 	cAAR,
-	cPAMC
+	cPAMC,
 };
 
 class Mando {
@@ -44,6 +44,7 @@ public:
 	void checkAtonBit();
 	void reInit();
 	void sambung();
+	void hantarM6();
 
 	uint32_t getMandoTaskStat() const {
 		return _mandoTaskStat;
@@ -93,6 +94,7 @@ public:
 	bool _inputMandoVdo06		= false;
 	bool _inputMandoVdo21		= false;
 	String _nmea = "";
+	String _abm = "";
 	float tmpLat = 0;
 	float tmpLng = 0;
 	String ProcAtonbit_prev = "XX";
@@ -160,6 +162,7 @@ private:
 	uint64_t _runCtr = 0;
 	uint64_t _hantarDelay = 0;
 	uint64_t _masaNMEA = 0;
+	uint64_t _masaAtonBit = 0;
 
 
 	char buffer[768];

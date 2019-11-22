@@ -13,7 +13,7 @@ struct machineData {
 	String name = "";
 };
 
-typedef struct mandoConfig {
+struct mandoConfig {
 	String MName = "0";
 	String MMmsi = "0";           //9digit + 1null character
 	char MAtonType[3] = "0";        //2char + 1 null character
@@ -42,7 +42,7 @@ typedef struct mandoConfig {
 	String M21IntervalBBahagi60 = "0";
 };
 
-typedef struct msg6Data {
+struct msg6Data {
 	float MVin;
 	float LVin;             // 4,7
 	float RVin = 0;
@@ -51,7 +51,7 @@ typedef struct msg6Data {
 	//beat kt sini
 	int LDRStatus = 0;
 	int LNyala=0;             // 4,9,kanan
-	int SLNyala;
+	int SLNyala = 0;
 	bool Door;
 	bool MLCond;
 	bool MLStat;
@@ -90,7 +90,7 @@ typedef struct msg6Data {
 
 };
 
-typedef struct confData {
+struct confData {
 	String Beat;
 	String Reboot_Mode;
 	String Light_Detect_Method;

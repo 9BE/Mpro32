@@ -422,7 +422,7 @@ void JsonHandler::processSubmitJSON(String json)
 
 
 	JsonArray rows = jsonObjSubmit["rows"];
-	boolean sk = false, mk = false, lk = false;
+	boolean sk = false, mk = false;
 	for (JsonObject aRow : rows) {
 		const char* e1 = aRow["element"][0]["e1"][0];
 		const char* e2 = aRow["element"][1]["e2"][0];
@@ -448,7 +448,6 @@ void JsonHandler::processSubmitJSON(String json)
 
 bool JsonHandler::spiffsKe(String e1, String e2) {
 	bool ada = false;
-	int noBrg = -1;
 	for (int i = 0; i < SAIZ_BRG_SPIFFS; i++) {
 		if (e1 == brgSpiffs[i]) {
 			ada = true;

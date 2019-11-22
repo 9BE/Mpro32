@@ -178,9 +178,9 @@ void AIS_msg::ConstructMsg06(char* memory, long dest, int channel, msg6Data &dat
 		iniAISmsg->message6bits(lantern, 2, memory);         //LIGHT ================================??
 		iniAISmsg->message6bits(alarmX, 1, memory);           //ALARM ================================??
 
-		char* end;
+//		char* end;
 		//	long hehe = strtol(ConfData.Beat, &end, 10);
-		long hehe = ConfData.Beat.toInt();
+		int hehe = ConfData.Beat.toInt();
 
 		//	if (*end) {
 		//		hehe = 0;
@@ -368,7 +368,6 @@ void AIS_msg::decodeM21(String myText, int & ProcOffPositionStatus) {
 void AIS_msg::message6bits(long data, char nums, char* memory) {
 	int x, y;
 	long titik;
-	long ddd;
 
 	titik = pow(2, nums);
 
@@ -431,7 +430,6 @@ void AIS_msg::genEncData(char* memory) {
 }
 
 void AIS_msg::checkSum(String& mesej) {
-	char inchar;
 	int start_with = 0;
 	int end_with = 0;
 	int CRC = 0;

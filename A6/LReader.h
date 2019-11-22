@@ -22,13 +22,13 @@ public:
 	static void Lighthouse();
 	static void Beacon();
 
+	uint64_t masaLR = 0;
+
 
 private:
 
 	Lantern * _oLantern;
 	Mando * _oMando;
-
-
 
 	//------------------------LANTERN READER----------------------
 
@@ -40,6 +40,10 @@ private:
 	unsigned long queryinterval;
 	unsigned long notconnected;
 	unsigned long kalaujumpalanterncepat;
+
+	uint8_t _normal = 0;
+
+	String _tempAtonBit = "XX";
 
 
 };

@@ -260,18 +260,18 @@ char timing::dayZone(void) {
 	if (lNow > lSunRise) {
 		if (lNow > lSunDown) {
 			if (lNow > lSunDusk) {
-				return 0; // nite    //error: '0' was not declared in this scope
+				return e_nite; // nite    //error: '0' was not declared in this scope
 			} else {
-				return 3; //dusk   //error: '3' was not declared in this scope
+				return e_dusk; //dusk   //error: '3' was not declared in this scope
 			}
 		} else {
-			return 2; //day   //error: '2' was not declared in this scope
+			return e_day; //day   //error: '2' was not declared in this scope
 		}
 	} else {
 		if (lNow > lSunDawn) {
-			return 1; //dawn   //error: '1' was not declared in this scope
+			return e_dawn; //dawn   //error: '1' was not declared in this scope
 		} else {
-			return 0; //nite   //error: '0' was not declared in this scope
+			return e_nite; //nite   //error: '0' was not declared in this scope
 		}
 	}
 }

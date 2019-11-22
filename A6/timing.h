@@ -29,6 +29,13 @@ struct dateTime{
 
 };
 
+enum {
+	e_nite,
+	e_dawn,
+	e_day,
+	e_dusk
+};
+
 
 class timing {
 public:

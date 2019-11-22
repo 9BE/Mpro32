@@ -96,13 +96,13 @@ void LocWiFi::loop(void* parameter) {
 				break;
 		}
 
-		if (millis() > 60000) {
-			delete iniWiFi;
-//			if (!WiFi.isConnected()) {
-//				delete iniWiFi;
-//			}
-
-		}
+//		if (millis() > 60000) {
+//			delete iniWiFi;
+////			if (!WiFi.isConnected()) {
+////				delete iniWiFi;
+////			}
+//
+//		}
 
 
 //		*iniWiFi->_lookVal = 0;

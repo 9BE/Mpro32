@@ -55,7 +55,7 @@ void Mando::loop(void* param) {
 			}
 		}
 
-		if (iniMando->_nmea.length() > 20000) {
+		if (iniMando->_nmea.length() > 3000) {
 			iniMando->_nmea = "";
 		}
 
@@ -69,9 +69,12 @@ void Mando::reInit() {
 	_mandoTaskStat = mt_none;
 }
 
+void Mando::hantarM6() {
+	mandoTask = Send06;
+}
 
 void Mando::sambung() {
-	mandoTask = ACE;
+	mandoTask = RMC;
 	_mandoTaskStat = mt_ada;
 }
 
@@ -321,8 +324,8 @@ void Mando::processMandoData() {
 					}
 				}
 				break;
-			case mt_cNone:
 			case SendBIT:
+			case mt_cNone:
 			case Send06:
 			case cAID1:
 			case cAID2:
@@ -335,7 +338,6 @@ void Mando::processMandoData() {
 
 			}
 		}
-
 
 	}
 
@@ -391,7 +393,7 @@ void Mando::hantarDataMando() {
 			_hantarDelay = 1500;
 		}
 		else if (mandoTask == SendBIT) {
-			log_i(" )()()()()()()()()()()()()()()()(()()()()()()() checkAtonBit()");
+			log_i(" )()()()()()()()()()()()()()()()(()()()()()()() checkAtonBit() at %d", millis());
 			AIS_msg * aisMsg;
 			aisMsg = new AIS_msg();
 			aisMsg->makeAtonBit(ProcAtonbit_now, AtonBit.alarmX, AtonBit.lantern, AtonBit.racon, AtonBit.page);
@@ -401,12 +403,14 @@ void Mando::hantarDataMando() {
 				log_i("MFullTextAce >>> %s", MFullTextAce);
 				Serial2.println(MFullTextAce);
 				Serial2.flush();
-				delay(50);
-
+				iniMando->_runCtr = millis();
+				_hantarDelay = 10000;
 			}
 
 			iniMando->_mandoTaskStat = SendBIT;
 			mandoTask = Send06;
+
+
 
 			delete aisMsg;
 		}
@@ -441,12 +445,15 @@ void Mando::hantarDataMando() {
 			g += "\r\n\0";
 			ais_msg->checkSum(g);
 			log_i("MSG 6 hantar ============== %s :: at %d", g.c_str(), millis());
+			_abm = g;
 			Serial2.println(g);
 			Serial2.flush();
 			delay(50);
 
 			iniMando->_mandoTaskStat = Send06;
 			mandoTask = ABK06;
+			iniMando->_runCtr = millis();
+			_hantarDelay = 1500;
 			_kaliHantarM6++;
 
 			delete ais_msg;
@@ -835,6 +842,8 @@ String Mando::getLookUpHeader() {
 			return "!AIVDO";
 		case ABK06:
 			return "$AIABK";
+		case SendBIT:
+			return "$PAMC";
 		default:
 			return "XX";
 
@@ -842,10 +851,7 @@ String Mando::getLookUpHeader() {
 }
 
 int Mando::getBit(String& pass, byte from, byte until) {
-	byte panjang;
-	char value;
 	char pos[11];
-	panjang = until - from;
 	pass.toCharArray(pos, 11);
 
 	int coor = 0;
@@ -865,3 +871,5 @@ void Mando::beating() {
 
 	log_i("Beat >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> %s", SpiffsData.Beat.c_str());
 }
+
+

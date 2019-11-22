@@ -111,8 +111,11 @@ void Lantern::loop(void* param) {
 				iniLantern->checkLanternLost();
 			}
 			else if (iniLantern->_lanternTask == lt_Decision) {
+				iniLantern->normalize();
 				iniLantern->makeDecision();
-				delay(1000);
+
+				delay(5000);
+
 				if (iniLantern->_mulai) {
 					iniLantern->reInit();
 				}
@@ -123,6 +126,26 @@ void Lantern::loop(void* param) {
 		delay(iniLantern->_loopDelay);
 	}
 
+}
+
+void Lantern::normalize() {
+	if (_lrNyala == 1) {
+		if (_nyalaNormal < 5) {
+			_nyalaNormal++;
+		}
+	}else if (_lrNyala == 0) {
+		if (_nyalaNormal > 0) {
+			_nyalaNormal--;
+		}
+	}
+
+	if (_nyalaNormal == 5) {
+		_prevNyala = 1;
+	}else if (_nyalaNormal == 0) {
+		_prevNyala = 0;
+	}
+
+	_oMando->M6data.LNyala = _prevNyala;
 }
 
 bool Lantern::handleLR() {
@@ -166,7 +189,7 @@ bool Lantern::handleLR() {
 
 			lightStatus = String(_8bit[5]) + String(_8bit[6]);
 			if (_oMando->SpiffsData.Format == "GF-LR-BUOY") {
-				if (_oTiming->ZoneTime == 0) { //Night
+				if (_oTiming->ZoneTime == e_nite) { //Night
 					float Thres1 = Primthresholdamp - (Primthresholdamp * 0.5);
 					if (PrimMaxMinDiff >= Thres1) {
 						DoNotChange = 0;
@@ -292,7 +315,7 @@ bool Lantern::handleSC35() {
 void Lantern::makeDecision() {
 	// part SUHAIMI
 
-	if (!_oMando->M6data.LNyala | !lanternRespond) {      // jika lantern taknyala (due to some reason), or lantern not respond within given time
+	if (!_oMando->M6data.LNyala || !lanternRespond) {      // jika lantern taknyala (due to some reason), or lantern not respond within given time
 		if (lanternlock) {
 			if (!strcmp(_oMando->SpiffsData.Use_LDR.c_str(), "Yes")) { //kalau dia menggunakan LR drpd Lighthouse dan Beacon, kene auto Use LDR = Yes.
 				if (_oMando->M6data.LDRStatus == 1) {
@@ -318,7 +341,7 @@ void Lantern::makeDecision() {
 			}
 			else {
 				_oMando->M6data.LDRStatus = 0;
-				if (_oTiming->ZoneTime == 0) {
+				if (_oTiming->ZoneTime == e_nite) {
 					_oMando->AtonBit.lantern = 3;
 					_oMando->AtonBit.alarmX = 1;
 				}
@@ -328,7 +351,7 @@ void Lantern::makeDecision() {
 				}
 			}
 		}
-		else if (_oTiming->ZoneTime == 0) {  // malam
+		else if (_oTiming->ZoneTime == e_nite) {  // malam
 			_oMando->AtonBit.lantern = 3;
 			_oMando->AtonBit.alarmX = 1;
 		}
@@ -373,7 +396,7 @@ void Lantern::makeDecision() {
 			_oMando->M6data.Door = 0;
 			_oMando->M6data.ACPower = 0;
 			_oMando->M6data.BMS = 1;
-			if (_oTiming->ZoneTime == 0) {
+			if (_oTiming->ZoneTime == e_nite) {
 				if (lanternlockB) {
 					if (_oMando->M6data.ELStat) {
 						_oMando->M6data.ELCond = 0;
@@ -553,8 +576,8 @@ void Lantern::lanternRead() {
 
 				temp0 = node.getResponseBuffer(1);
 				_oMando->M6data.LIsNight = bitRead(temp0, 2);
-				if (_oMando->M6data.LIsNight == 0)  _oTiming->ZoneTime = 2;
-				else                _oTiming->ZoneTime = 0;
+				if (_oMando->M6data.LIsNight == 0)  _oTiming->ZoneTime = e_day;
+				else                _oTiming->ZoneTime = e_nite;
 
 				log_i("LIsNight: %d", _oMando->M6data.LIsNight);
 
@@ -589,3 +612,5 @@ void Lantern::checkLanternLost() {
 	iniLantern->_lanternTaskStat = lt_CheckLanternLost;
 	iniLantern->_lanternTask = lt_Decision;
 }
+
+

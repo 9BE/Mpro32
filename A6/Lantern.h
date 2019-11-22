@@ -88,6 +88,9 @@ public:
 	bool findEmergency = false;
 	bool askLantern3 = false;
 
+	uint8_t _nyalaNormal = 3;
+	int _lrNyala = 0;
+
 
 private:
 	static void loop(void * param);
@@ -95,6 +98,7 @@ private:
 	bool handleSC35();
 	void makeDecision();
 	void checkLanternLost();
+	void normalize();
 
 
 	bool _mulai		= false;
@@ -129,6 +133,9 @@ private:
 	bool askLantern1 = false;
 	bool askLantern2 = false;
 	String alert = "";
+	int _prevNyala = 0;
+
+
 
 	//char askLanternTimeUp = 300;
 

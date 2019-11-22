@@ -21,6 +21,7 @@ LocWiFi		*locWiFi;
 uint64_t masaLantern = 0;
 uint64_t masaPower = 0;
 uint64_t masaTestMando = 0;
+uint64_t masaReboot= 0;
 
 int xValWiFi = 0;
 
@@ -34,6 +35,10 @@ bool jumpaAIS = true;
 bool powerOK = false;
 bool tungguLantern = false;
 bool tungguVDO = false;
+
+int txPowerRangers = 78;
+
+uint8_t malam = 1;
 
 // *************************** PROTOTYPING *************************************
 
@@ -90,6 +95,8 @@ void setup()
 
 	mainLampu(3, 500);
 
+//	WiFi.setTxPower(WIFI_POWER_19_5dBm); // test kene buang utk sebenar
+
 	if (!_oMando->isMulai()) {
 		_oMando->setMulai(true);
 	}
@@ -109,20 +116,30 @@ void loop()
 {
 //Add your repeated code here
 
-//	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>> SIMULATOR START >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-//	// key '3' = mando																//
-//	// key '5' = lantern															//
-//	char cr;																		//
-//	while (Serial.available()) {													//
-//		cr = Serial.read();															//
-//		if (cr == '3') {															//
-//			_oMando->setMandoTaskStat(_oMando->getMandoTaskStat() + 1);				//
-//			_oMando->setMandoTask(MandoTask (_oMando->getMandoTaskStat() + 1));		//
-//		}else if (cr == '5') {														//
-//			_oLantern->setLanternTaskStat(3);										//
-//		}																			//
-//	}																				//
-//	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>> SIMULATOR END >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>> SIMULATOR START >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	// key '3' = mando
+	// key '5' = lantern
+//	char cr;
+//	if (Serial.available()) {
+//		while (Serial.available()) {
+//			cr = Serial.read();
+//			if (cr == '3') {
+//				_oMando->setMandoTaskStat(_oMando->getMandoTaskStat() + 1);
+//				_oMando->setMandoTask(MandoTask (_oMando->getMandoTaskStat() + 1));
+//			}else if (cr == '5') {
+//				_oLantern->setLanternTaskStat(3);
+//			}else if (cr == '9') {
+//				txPowerRangers++;
+//				WiFi.setTxPower((wifi_power_t)txPowerRangers);
+//				log_i("Setting tx power to >> %d", txPowerRangers);
+//			}else if (cr == '0') {
+//				txPowerRangers--;
+//				WiFi.setTxPower((wifi_power_t)txPowerRangers);
+//				log_i("Setting tx power to >> %d", txPowerRangers);
+//			}
+//		}
+//	}
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>> SIMULATOR END >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 	// ==> TIMING
 	if (_oTiming->tickTock()) {
@@ -131,6 +148,19 @@ void loop()
 		log_i("  ticTock :::::::::: %d", millis()/1000);
 		log_i(" Mando task ::::: %d", _oMando->getMandoTaskStat());
 		log_i("Lantern task :: %d", _oLantern->getLanternTaskStat());
+		log_i("TX POWER ************************** %d", (int) WiFi.getTxPower());
+//		if (_oTiming->ZoneTime == e_nite) {
+//			// malam
+//			if (!malam) {
+//				malam = 1;
+//				WiFi.setTxPower(WIFI_POWER_7dBm);
+//			}
+//		}else if (_oTiming->ZoneTime == e_day) {
+//			if (malam) {
+//				malam = 0;
+//				WiFi.setTxPower(WIFI_POWER_19_5dBm);
+//			}
+//		}
 
 	}
 
@@ -171,14 +201,20 @@ void loop()
 
 
 	// ==> BIIT
-//	if (millis() >= 3600000) {
-//		_oMando->setMulai(false);
-//		_oLantern->setMulai(false);
-//		delay(3000);
-//		// repeat;
-//		espReboot();
-//
-//	}
+	if (millis() - masaReboot >= 3600000) {
+		_oMando->setMulai(false);
+		_oLantern->setMulai(false);
+		delay(3000);
+		// repeat;
+		espReboot();
+		delay(3000);
+		_oMando->reInit();
+		_oLantern->reInit();
+		_oMando->setMulai(true);
+		_oLantern->setMulai(true);
+		masaReboot = millis();
+
+	}
 
 	feedLoopWDT();
 
@@ -260,7 +296,7 @@ inline void setupSPIFFiles(bool freshSetup) {
 
 	//Setup SSID----------------------------------------------------------------
 	info = locSpiff->getInfo("/ssid.txt");
-	if(info.filename == "/ssid.txt" && !freshSetup){
+	if(!freshSetup && info.filename == "/ssid.txt"){
 		log_i("info /ssid.txt = EXIST");
 		log_i("Exist");
 	}
@@ -270,8 +306,8 @@ inline void setupSPIFFiles(bool freshSetup) {
 		locSpiff->appendFile("/ssid.txt", "sta,ideapad,sawabatik1\n");
 		locSpiff->appendFile("/ssid.txt", "sta,AndroidAP,efdx6532\n");
 		locSpiff->appendFile("/ssid.txt", "sta,GF_Wifi_2.4GHz,Gr33nF1nd3r2018\n");
-//		locSpiff->appendFile("/ssid.txt", "ap,TestZippy,123qweasd\n");
-		locSpiff->appendFile("/ssid.txt", "ap,GreenFinderIOT,0xadezcsw1\n");
+		locSpiff->appendFile("/ssid.txt", "ap,TestZippy,123qweasd\n");
+//		locSpiff->appendFile("/ssid.txt", "ap,GreenFinderIOT,0xadezcsw1\n");
 	}
 
 	info = locSpiff->getInfo("/n.txt");
@@ -324,11 +360,11 @@ inline void espReboot() {
 	if (_oMando->_machine.id != locSpiff->readFile("/m.txt")) {
 		locSpiff->writeFile("/m.txt", _oMando->_machine.id.c_str());
 	}
-	delay(5);
+	delay(1000);
 	if (_oMando->_machine.name = locSpiff->readFile("/n.txt")) {
 		locSpiff->writeFile("/n.txt", _oMando->_machine.name.c_str());
 	}
-	delay(5);
+	delay(1000);
 	delete locSpiff;
 
 	delay(1000);
@@ -341,7 +377,7 @@ inline void espReboot() {
 
 	delete jsonHandler;
 
-	ESP.restart();
+//	ESP.restart();
 }
 
 inline void urusAlert() {
@@ -415,7 +451,7 @@ inline void urusConfig() {
 inline void urusAIS() {
 	// ==> CHECK AIS DEVICE AVAILABILITY
 
-	if (millis() - _oMando->getMasaNmea() >= 30000) {
+	if (millis() - _oMando->getMasaNmea() >= 60000) {
 		_oServer->setAppCommPort("Not found");
 		jumpaAIS = false;
 		_oMando->reInit();
@@ -425,7 +461,54 @@ inline void urusAIS() {
 		jumpaAIS = true;
 	}
 
-	// ==> SEND MSG 6
+//	if (jumpaAIS) {
+//		if (_oLantern->getLanternTaskStat() == lt_Decision ) {
+//			_oLantern->setMulai(false);
+//			_oMando->checkAtonBit();
+//			delay(100);
+//			if (_oMando->_inputMandoVdo21 && powerOK) {
+//				_oMando->hantarM6();
+//
+//				long hantar=0;
+//				while(true){
+//					hantar ++;
+//					if(_oMando->getMandoTaskStat() == ABK06){
+//						break;
+//					}
+//					if(hantar > 1000){
+//						break;
+//					}
+//					delay(10);
+//				}
+//
+//				_oMando->agoM6 = millis();
+//				_oMando->lastM06 = _oTiming->now.sMasa.c_str();
+//				_oMando->_inputMandoVdo06 = true;
+//				_oMando->_masaMando = millis();
+//
+//				alert = "Message 6 sent";
+//				_oServer->setAlert(alert);
+//
+//				mainLampu(1, 250);
+//			}
+//
+//			_oMando->sambung();
+//			_oLantern->reInit();
+//			_oLantern->setMulai(true);
+//
+//		}
+//	}
+
+//	if (_oLantern->getLanternTaskStat() == lt_Decision ) {
+//		_oLantern->setMulai(false);
+//		_oMando->checkAtonBit();
+//		delay(15000);
+//		_oMando->sambung();
+//		_oLantern->reInit();
+//		_oLantern->setMulai(true);
+//	}
+
+//	 ==> SEND MSG 6
 	if (jumpaAIS && millis() - _oMando->_masaMando >= 180000) { //600000
 		tungguVDO = true;
 		if (_oMando->_inputMandoVdo21 && powerOK) {
@@ -440,6 +523,7 @@ inline void urusAIS() {
 				while(true){
 					hantar ++;
 					if(_oMando->getMandoTaskStat() == ABK06){
+						mainLampu(2, 250);
 						break;
 					}
 					if(hantar > 1000){
@@ -456,7 +540,7 @@ inline void urusAIS() {
 				alert = "Message 6 sent";
 				_oServer->setAlert(alert);
 
-				mainLampu(1, 250);
+
 
 				_oMando->sambung();
 				_oLantern->reInit();
