@@ -102,7 +102,7 @@ void JsonHandler::extractConfData() {
 	LocSpiff 	*locSpiff;
 	locSpiff = new LocSpiff("JsonHandler::extractConfData()");
 
-	String jData = locSpiff->readFile("/config");
+	String jData = locSpiff->readFile("/config.json");
 	log_i("jData sebelum extractConfData ===== %s", jData.c_str());
 	DynamicJsonDocument jDoc(4096);
 	DeserializationError jerr = deserializeJson(jDoc, jData);

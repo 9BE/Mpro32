@@ -11,6 +11,8 @@
 #include "LocWiFi.h"
 #include "esp_task_wdt.h"
 
+extern "C" int rom_phy_get_vdd33();
+
 LReader * _oLreader;
 Lantern * _oLantern;
 Mando * _oMando;
@@ -28,6 +30,7 @@ int xValWiFi = 0;
 //averaging
 float MVinX = 15;
 float adcBattery = 0;
+float _vcc = 0;
 
 String alert = "Booting controller";
 String binFile;
@@ -51,6 +54,7 @@ void mainLampu(uint16_t berapaKali, uint64_t delayTime);
 void urusAlert();
 void urusConfig();
 void urusAIS();
+void getVcc();
 
 
 //The setup function is called once at startup of the sketch
@@ -73,6 +77,8 @@ void setup()
 	binFile = binFile.substring(0, binFile.length()-4);
 
 	log_i("binFile :: %s\n", binFile.c_str());
+
+	getVcc();					// Get internal VCC
 
 	_oTiming = new timing();
 	_oMando = new Mando(1, 50, _oTiming);
@@ -149,18 +155,18 @@ void loop()
 		log_i(" Mando task ::::: %d", _oMando->getMandoTaskStat());
 		log_i("Lantern task :: %d", _oLantern->getLanternTaskStat());
 		log_i("TX POWER ************************** %d", (int) WiFi.getTxPower());
-//		if (_oTiming->ZoneTime == e_nite) {
-//			// malam
-//			if (!malam) {
-//				malam = 1;
-//				WiFi.setTxPower(WIFI_POWER_7dBm);
-//			}
-//		}else if (_oTiming->ZoneTime == e_day) {
-//			if (malam) {
-//				malam = 0;
-//				WiFi.setTxPower(WIFI_POWER_19_5dBm);
-//			}
-//		}
+		if (_oTiming->ZoneTime == e_nite) {
+			// malam
+			if (!malam) {
+				malam = 1;
+				WiFi.setTxPower(WIFI_POWER_7dBm);
+			}
+		}else if (_oTiming->ZoneTime == e_day) {
+			if (malam) {
+				malam = 0;
+				WiFi.setTxPower(WIFI_POWER_19_5dBm);
+			}
+		}
 
 	}
 
@@ -222,6 +228,23 @@ void loop()
 	delay(50);
 }
 
+inline void getVcc() {
+	btStart();
+
+	int internalBatReading = rom_phy_get_vdd33();
+	Serial.println(internalBatReading);
+	_vcc = (float)(((uint32_t)internalBatReading*3.288)/6491);
+	log_i("Vin ????????????????????? === %f", _vcc);
+	btStop();
+
+	if (_vcc > 3.29) {
+		_vcc = 3;
+	}else if (_vcc < 3.19){
+		_vcc = 3.6;
+	}
+}
+
+
 void mainLampu(uint16_t berapaKali, uint64_t delayTime) {
 	for (int i=0; i<berapaKali; i++) {
 		digitalWrite(LED_PIN, HIGH);
@@ -236,21 +259,28 @@ void mainPower() {
 	adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_DB_11);
 	_oMando->rawBattery = adc1_get_raw(ADC1_CHANNEL_0);
 //	log_i("MVin raw === %g", _oMando->rawBattery);
-	adcBattery = rollAverage(adcBattery, _oMando->rawBattery, 10);
+	adcBattery = rollAverage(adcBattery, _oMando->rawBattery, 100);
+
+	_oMando->M6data.MVin = adcBattery/4095;
+	_oMando->M6data.MVin *= _vcc;
+
+	_oMando->M6data.MVin = _oMando->M6data.MVin * 22.6309669918;
+	_oMando->M6data.MVin += 3.3371091445;
+	log_i("MVin voltage >>>>>>>>>>>>>>>>>>> %g", _oMando->M6data.MVin);
 
 //	_oMando->M6data.MVin = adcBattery * 0.0147229551;
 //	_oMando->M6data.MVin += 4.0259366755;
-	_oMando->M6data.MVin = adcBattery / 560;
-	_oMando->M6data.MVin *= 13.12;
+//	_oMando->M6data.MVin = adcBattery / 560;
+//	_oMando->M6data.MVin *= 13.12;
 
 	if (_oMando->M6data.MVin > MVinX) {
 		powerOK = true;
-//		log_i("**********************************************************************************************");
-//		log_i("**********************************************************************************************");
-//		log_i("************************************** POWER OK at %d **************************************", millis());
-//		log_i("************************************** %f **************************************", _oMando->M6data.MVin);
-//		log_i("**********************************************************************************************");
-//		log_i("**********************************************************************************************");
+		log_i("**********************************************************************************************");
+		log_i("**********************************************************************************************");
+		log_i("************************************** POWER OK at %d **************************************", millis()/1000);
+		log_i("************************************** %f **************************************", _oMando->M6data.MVin);
+		log_i("**********************************************************************************************");
+		log_i("**********************************************************************************************");
 
 	}else {
 		powerOK = false;
@@ -286,7 +316,7 @@ inline void setupSPIFFiles(bool freshSetup) {
 
 	String jData = locSpiff->readFile("/config.json");
 	log_i("jData :: %s", jData.c_str());
-	jData = jsonHandler->checkConfigValue(jData, false);
+	jData = jsonHandler->checkConfigValue(jData, freshSetup);
 	if (jData == "OK") {
 		log_i("configValue OK");
 	}else {
@@ -550,3 +580,4 @@ inline void urusAIS() {
 		}
 	}
 }
+
