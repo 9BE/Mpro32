@@ -180,7 +180,7 @@ void JsonHandler::extractConfData() {
 	_oMando->SpiffsData.Sec_Mon = jDoc["Sec. Mon."].as<String>();
 	_oMando->SpiffsData.RACON_Mon = jDoc["RACON Mon."].as<String>();
 	_oMando->SpiffsData.Lantern_Lost = jDoc["Lantern_Lost"].as<String>();
-	_oMando->SpiffsData.Use_LDR = jDoc["Use LDR"].as<String>();
+	_oMando->SpiffsData.Use_LDR = jDoc["Use LDR"].as<String>(); //Use LDR
 	_oMando->SpiffsData.Calibrate = jDoc["Calibrate"].as<String>();
 	_oMando->SpiffsData.Calib_Prim_M = jDoc["Calib. Prim. (M)"].as<String>();
 	_oMando->SpiffsData.Calib_Sec_M = jDoc["Calib. Sec. (M)"].as<String>();
@@ -241,29 +241,29 @@ bool JsonHandler::simpanConfData() {
 			x++;
 			jDoc["Sec. Mon."] = _oMando->SpiffsData.Sec_Mon.c_str();
 		}
-		if (strcmp(jDoc["Lantern_Lost"], _oMando->SpiffsData.RACON_Mon.c_str())) {
-			x++;
-			jDoc["RACON Mon."] = _oMando->SpiffsData.RACON_Mon.c_str();
-		}
-		if (strcmp(jDoc["Use LDR"], _oMando->SpiffsData.Lantern_Lost.c_str())) {
+		if (strcmp(jDoc["Lantern_Lost"], _oMando->SpiffsData.Lantern_Lost.c_str())) {
 			x++;
 			jDoc["Lantern_Lost"] = _oMando->SpiffsData.Lantern_Lost.c_str();
 		}
-		if (strcmp(jDoc["Calibrate"], _oMando->SpiffsData.Use_LDR.c_str())) {
+		if (strcmp(jDoc["Use LDR"], _oMando->SpiffsData.Use_LDR.c_str())) {
 			x++;
 			jDoc["Use LDR"] = _oMando->SpiffsData.Use_LDR.c_str();
 		}
-		if (strcmp(jDoc["Calib. Prim. (M)"], _oMando->SpiffsData.Calibrate.c_str())) {
+		if (strcmp(jDoc["Calibrate"], _oMando->SpiffsData.Calibrate.c_str())) {
 			x++;
 			jDoc["Calibrate"] = _oMando->SpiffsData.Calibrate.c_str();
 		}
-		if (strcmp(jDoc["Calib. Sec. (M)"], "")) {
+		if (strcmp(jDoc["Calib. Prim. (M)"], _oMando->SpiffsData.Calib_Prim_M.c_str())) {
 			x++;
 			jDoc["Calib. Prim. (M)"] = _oMando->SpiffsData.Calib_Prim_M.c_str();
 		}
-		if (strcmp(jDoc["RACON Mon."], "")) {
+		if (strcmp(jDoc["Calib. Sec. (M)"], _oMando->SpiffsData.Calib_Sec_M.c_str())) {
 			x++;
-			jDoc["Calib. Sec. (M)"] = _oMando->SpiffsData.Calib_Prim_M.c_str();
+			jDoc["Calib. Sec. (M)"] = _oMando->SpiffsData.Calib_Sec_M.c_str();
+		}
+		if (strcmp(jDoc["RACON Mon."], _oMando->SpiffsData.RACON_Mon.c_str())) {
+			x++;
+			jDoc["RACON Mon."] = _oMando->SpiffsData.RACON_Mon.c_str();
 		}
 
 		log_i("x ====== %d", x);

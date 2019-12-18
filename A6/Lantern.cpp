@@ -84,26 +84,52 @@ void Lantern::loop(void* param) {
 						}
 					}else {
 						log_i("!!!!!!!!!!!!!!!!!!!!! NOT FOUND LR");
-						iniLantern->jumpaLR = false;
-						iniLantern->_lanternTaskStat = lt_LANTERNreader_nf;
-						iniLantern->_lanternTask = lt_CheckLanternLost;
-						iniLantern->lanternRespond = 0;
-						iniLantern->_oMando->M6data.LVin = 0;
+
+
 
 						if (iniLantern->lanternlockB & !iniLantern->lanternlockC) { //Buoy dapat. Lighthouse tak dapat
 							iniLantern->alert = "Not found Lighthouse System";
+							iniLantern->LanternLongStatus = "Not found Lighthouse System";
+							iniLantern->_oMando->M6data.LVin = 0;
+							if (iniLantern->_oMando->SpiffsData.RACON_Mon != "No") {
+								iniLantern->_oMando->M6data.RVin = 0;
+							}
+
+							iniLantern->_oMando->M6data.LNyala = iniLantern->_oMando->M6data.ELStat;
+//							iniLantern->normalize();
+//							iniLantern->_oMando->M6data.ELStat = iniLantern->_oMando->M6data.LNyala;
+
+
 						}
 						else if (!iniLantern->lanternlockB & iniLantern->lanternlockC) { //Buoy takdapat. Lighthouse dapat
 							iniLantern->alert = "Not found Emergency System";
+							iniLantern->LanternLongStatus = "Not found Emergency System";
 							iniLantern->_oMando->M6data.ELCond = 0;
 							iniLantern->_oMando->M6data.ELStat = 0;
+							if (iniLantern->_oMando->SpiffsData.RACON_Mon == "No") {
+								iniLantern->_oMando->M6data.RVin = 0;
+							}
 							iniLantern->findEmergency = true;
 							//ha kat sini boleh kata not found lantern emergency
 						}
 						else {
 							iniLantern->findEmergency = true;
 							iniLantern->alert = "Not found Lantern";
+							iniLantern->jumpaLR = false;
+							iniLantern->lanternRespond = 0;
+							iniLantern->_oMando->M6data.LVin = 0;
+							iniLantern->_oMando->M6data.LDRStatus = 0;
+							iniLantern->_oMando->M6data.LNyala = 0;
+							iniLantern->_oMando->M6data.SLNyala = 0;
+							iniLantern->_oMando->M6data.ELCond = 1;
+							iniLantern->_oMando->M6data.ELStat = 0;
+							iniLantern->_oMando->M6data.RVin = 0;
 						}
+
+
+						iniLantern->_lanternTaskStat = lt_LANTERNreader_nf;
+						iniLantern->_lanternTask = lt_CheckLanternLost;
+
 					}
 				}
 			}
@@ -111,7 +137,10 @@ void Lantern::loop(void* param) {
 				iniLantern->checkLanternLost();
 			}
 			else if (iniLantern->_lanternTask == lt_Decision) {
-				iniLantern->normalize();
+				if (iniLantern->lanternRespond == 4) {
+					iniLantern->normalize();
+				}
+
 				iniLantern->makeDecision();
 
 				delay(5000);
@@ -141,8 +170,10 @@ void Lantern::normalize() {
 
 	if (_nyalaNormal == 5) {
 		_prevNyala = 1;
+		_nyalaNormal = 3;
 	}else if (_nyalaNormal == 0) {
 		_prevNyala = 0;
+		_nyalaNormal = 3;
 	}
 
 	_oMando->M6data.LNyala = _prevNyala;
@@ -155,12 +186,7 @@ bool Lantern::handleLR() {
 	if (lanternlockB && lanternlockC) {
 		lanternlock = true;
 		LanternLongStatus = "Data locked.";
-		if (_oMando->M6data.LDRStatus == 1) {
-			_oMando->M6data.ELCond = !_oMando->M6data.ELStat; //jika lampu off, error. jika lampu on, no error
-		}
-		else {
-			_oMando->M6data.ELCond = 0;
-		}
+		_oMando->M6data.ELStat = _lrNyala;
 	}
 	if (lanternlock) {
 		res = true;
@@ -315,6 +341,9 @@ bool Lantern::handleSC35() {
 void Lantern::makeDecision() {
 	// part SUHAIMI
 
+	// lantern : 1=ON, 2=OFF, 3=ERROR
+	// aton bit : E2=L.ON, E4=L.OFF, E7=L.ERROR
+	// LDR : 1=Dark, 2=Dim, 3=Bright
 	if (!_oMando->M6data.LNyala || !lanternRespond) {      // jika lantern taknyala (due to some reason), or lantern not respond within given time
 		if (lanternlock) {
 			if (!strcmp(_oMando->SpiffsData.Use_LDR.c_str(), "Yes")) { //kalau dia menggunakan LR drpd Lighthouse dan Beacon, kene auto Use LDR = Yes.
@@ -322,18 +351,22 @@ void Lantern::makeDecision() {
 					if (_oMando->M6data.SLNyala) {
 						_oMando->AtonBit.lantern = 1;
 						_oMando->AtonBit.alarmX = 0;
+						_debugLDR = 11;
 					}
 					else {
 						_oMando->AtonBit.lantern = 3;
 						_oMando->AtonBit.alarmX = 1;
+						_debugLDR = 12;
 					}
 				}
 				else {
-					if (_oMando->M6data.SLNyala | _oMando->M6data.SLStat) {
+					if (_oMando->M6data.SLNyala || _oMando->M6data.SLStat) {
 						_oMando->AtonBit.lantern = 1;
 						_oMando->AtonBit.alarmX = 0;
+						_debugLDR = 21;
 					}
 					else {
+						_debugLDR = 22;
 						_oMando->AtonBit.lantern = 2;
 						_oMando->AtonBit.alarmX = 0;
 					}
@@ -366,6 +399,7 @@ void Lantern::makeDecision() {
 	}
 
 	//tempat update RACON START
+	// AtonBit.racon : 0=No, 2=Operational, 3=Error
 	if (_oMando->SpiffsData.RACON_Mon == "No") {
 		_oMando->AtonBit.racon = 0;
 	}
@@ -384,6 +418,14 @@ void Lantern::makeDecision() {
 
 
 	if (_oMando->SpiffsData.Format == "GF-LR-LIGHTHOUSE") {
+
+//		if (_oMando->M6data.LDRStatus == 1) {
+//			_oMando->M6data.ELCond = !_oMando->M6data.ELStat; //jika lampu off, error. jika lampu on, no error
+//		}
+//		else {
+//			_oMando->M6data.ELCond = 0;
+//		}
+
 		if (_oMando->M6data.LVin == 0) { //Lighthouse mati
 			_oMando->M6data.MLCond = 1;
 			_oMando->M6data.MLStat = 0;
@@ -398,6 +440,7 @@ void Lantern::makeDecision() {
 			_oMando->M6data.BMS = 1;
 			if (_oTiming->ZoneTime == e_nite) {
 				if (lanternlockB) {
+//					_oMando->M6data.LNyala = _oMando->M6data.ELStat;
 					if (_oMando->M6data.ELStat) {
 						_oMando->M6data.ELCond = 0;
 						_oMando->AtonBit.alarmX = 0;
@@ -419,6 +462,7 @@ void Lantern::makeDecision() {
 			else {
 				_oMando->AtonBit.alarmX = 0;
 				if (lanternlockB) {
+//					_oMando->M6data.LNyala = _oMando->M6data.ELStat;
 					if (_oMando->M6data.ELStat) {
 						_oMando->AtonBit.lantern = 1;
 						_oMando->M6data.ELCond = 0;
@@ -445,6 +489,7 @@ void Lantern::makeDecision() {
 			else {
 				if (_oMando->M6data.LDRStatus == 1) {
 					if (lanternlockB) {
+//						_oMando->M6data.LNyala = _oMando->M6data.ELStat;
 						if (_oMando->M6data.ELStat) {
 							_oMando->M6data.ELCond = 0;
 							_oMando->AtonBit.alarmX = 0;
@@ -466,6 +511,7 @@ void Lantern::makeDecision() {
 					_oMando->AtonBit.alarmX = 0;
 					_oMando->M6data.ELCond = 0;
 					if (lanternlockB) {
+//						_oMando->M6data.LNyala = _oMando->M6data.ELStat;
 						if (_oMando->M6data.ELStat)
 							_oMando->AtonBit.lantern = 1;
 						else

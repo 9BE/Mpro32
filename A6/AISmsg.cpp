@@ -160,6 +160,8 @@ void AIS_msg::ConstructMsg06(char* memory, long dest, int channel, msg6Data &dat
 
 
 	iniAISmsg->message6bits(hehe, 6, memory);     //FI // patutnya 4   A126
+
+	hehe = ConfData.Beat.toInt();
 	//Serial.print("FI: "); Serial.println(hehe);
 	//dalam ni
 	String caramba = ConfData.Format;
@@ -180,7 +182,7 @@ void AIS_msg::ConstructMsg06(char* memory, long dest, int channel, msg6Data &dat
 
 //		char* end;
 		//	long hehe = strtol(ConfData.Beat, &end, 10);
-		int hehe = ConfData.Beat.toInt();
+
 
 		//	if (*end) {
 		//		hehe = 0;
@@ -195,12 +197,72 @@ void AIS_msg::ConstructMsg06(char* memory, long dest, int channel, msg6Data &dat
 		battStat = temp;
 		message6bits(temp, 2, memory);
 
-		int Lamp;
+		int Lamp = 0;		// malam tp secondary x menyala
 
-		if((!data.LNyala && (data.LDRStatus == 3 || data.LDRStatus == 2)) || (!data.LNyala && tim->ZoneTime != 0)) Lamp = 0;
-		else if (data.LNyala) Lamp = 1;
-		else if (data.SLNyala)  Lamp = 2;
-		else  Lamp = 3;
+		// Lamp : 0=noLight, 1=ON, 2=OFF, 3=Emergency
+
+		if (data.LNyala) {
+			// Primary nyala
+			Lamp = 1;
+		}
+		else {
+			if (tim->ZoneTime != 0) {		// siang gps
+				Lamp = 0;
+				if (data.LDRStatus == 1) {	// LDR dark
+					if (data.SLNyala) {
+						Lamp = 2;
+					}else {
+						Lamp = 3;
+					}
+				}
+			}
+			else {							// malam gps
+				Lamp = 3;
+				if (data.LDRStatus == 1) {	// LDR dark
+					if (data.SLNyala) {
+						Lamp = 2;
+					}
+				}
+			}
+		}
+
+//		if (data.LNyala) {
+//			// Primary nyala
+//			Lamp = 1;
+//		}
+//		else {
+//			// Primary x nyala
+//			if (ConfData.Use_LDR == "Yes") {
+//				if (data.LDRStatus == 3 || data.LDRStatus == 2) { 	// siang
+//					Lamp = 0;
+//				}
+//				else if (data.SLNyala) {		// malam tp secondary menyala
+//					Lamp = 2;
+//				}
+//			}
+//			else {
+//				if (tim->ZoneTime != 0) {
+//					Lamp = 0;
+//				}
+//			}
+//		}
+
+//		if((!data.LNyala && (data.LDRStatus == 3 || data.LDRStatus == 2)) || (!data.LNyala && tim->ZoneTime != 0)) {
+//			Lamp = 0;
+//		}
+//		else if (data.LNyala){
+//			Lamp = 1;
+//		}
+//		else if (data.SLNyala)  {
+//			Lamp = 2;
+//		}
+//		else  {
+//			Lamp = 3;
+//		}
+
+
+		_debLamp = Lamp; 	// UTK DEBUG SEC LANTERN
+		_debLDR = data.LDRStatus;
 
 		temp = Lamp;
 		iniAISmsg->message6bits(temp, 2, memory);

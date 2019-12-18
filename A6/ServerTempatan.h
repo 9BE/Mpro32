@@ -43,6 +43,10 @@ public:
 		this->binFile = binFile;
 	}
 
+	void setJsonSpiffs(const String& jsonSpiffs = "") {
+		JSONSpiffs = jsonSpiffs;
+	}
+
 private:
 	void setup();
 	static void loop(void * lantern);
@@ -72,7 +76,9 @@ private:
 	String JSONPosAcc = "0- Low,1- High";
 	String JSONUseLDR = "No,Yes";
 	String JSONLightMode = "Fix,AI";
-	String JSONRebootMode = "1Min every 3Days,1Min every 5Min,1Min every 1Day";
+	String JSONRebootMode = "No,1Min every 3Days,1Min every 5Min,1Min every 1Day";
+
+	String JSONSpiffs = "";
 
 };
 

@@ -141,6 +141,9 @@ public:
 
 	uint32_t _kaliHantarM6 = 0;
 
+	int _debugLamp = 0;
+	int _debugLDR = 0;
+
 private:
 	static void loop(void * param);
 	void processMandoData();

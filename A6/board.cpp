@@ -44,31 +44,42 @@ String board::getMAC(){
 
 
 int board::getChannel(){
-	bool found = false;
+	bool found = false, sama = false;
 	int c = 0;
 
 	int n = WiFi.scanNetworks();
-	for (int i = 0; i < n; i++) {
-		if(WiFi.channel() > 12){
-			break;
-		}
+	for (int k = 0; k < 13; k++) {
+		c++;
+		for (int i = 0; i < n; i++) {
+			if(WiFi.channel(i) > 12){
+				continue;
+			}
 
-		if( c != WiFi.channel()){
-			c++;
-			if( c != WiFi.channel()){
-				found = true;
+			if(c == WiFi.channel(i)){
+				sama = true;
 				break;
 			}
+//
+//			if( c != WiFi.channel(i)){
+//				found = true;
+//				break;
+//			}
+		}
+		if (!sama) {
+			found = true;
+			break;
 		}
 	}
 
+
 	if(!found){
-		c = 1;
+		c = 5;
 	}
 	else{
-		if(c == 0) c = 1;
+		if(c == 0) c = 5;
 
 	}
+
 	return c;
 
 }

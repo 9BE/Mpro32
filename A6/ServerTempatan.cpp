@@ -53,21 +53,58 @@ void ServerTempatan::loop(void* lantern) {
 }
 
 void ServerTempatan::setup() {
-//	WiFi.mode(WIFI_AP);
-//	WiFi.softAP("GreenFinderIOT", "0xadezcsw1");
-//	WiFi.softAP("TestZippy", "123qweasd");
-//	ArduinoOTA.begin();
+	//	WiFi.mode(WIFI_AP);
+	//	WiFi.softAP("GreenFinderIOT", "0xadezcsw1");
+	//	WiFi.softAP("TestZippy", "123qweasd");
+	//	ArduinoOTA.begin();
 	_server.on("/nine", HTTP_POST, WebServer::THandlerFunction(nine));
 	_server.on("/Buoy", HTTP_GET, WebServer::THandlerFunction(iniServer->_oLanReader->Buoy));
 	_server.on("/Lighthouse", HTTP_GET, WebServer::THandlerFunction(iniServer->_oLanReader->Lighthouse));
 	_server.on("/Beacon", HTTP_GET,WebServer::THandlerFunction(iniServer->_oLanReader->Beacon));
+
+	_server.on("/anOta", HTTP_GET, WebServer::THandlerFunction([]() {
+		_server.sendHeader("Connection", "close");
+		String msg = otaApps;
+		msg.replace("[note]", "");
+		_server.send(200, "text/html", msg);}));
+
+	_server.on("/anUpdate", HTTP_POST, WebServer::THandlerFunction([]() {
+		_server.sendHeader("Connection", "close");
+		String msg = otaApps;
+		msg.replace("[note]", (Update.hasError()) ? "FAIL" : "OK");
+		_server.send(200, "text/html", msg);
+		delay(1000);
+		ESP.restart();}),
+			WebServer::THandlerFunction([]() {
+		HTTPUpload& upload = _server.upload();
+		if (upload.status == UPLOAD_FILE_START) {
+			Serial.printf("Update: %s\n", upload.filename.c_str());
+			if (!Update.begin(UPDATE_SIZE_UNKNOWN)) { //start with max available size
+				Update.printError(Serial);
+			}
+		}
+		else if (upload.status == UPLOAD_FILE_WRITE) {
+			/* flashing firmware to ESP*/
+			if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
+				Update.printError(Serial);
+			}
+		}
+		else if (upload.status == UPLOAD_FILE_END) {
+			if (Update.end(true)) { //true to set the size to the current progress
+				Serial.printf("Update Success: %u\nRebooting...\n", upload.totalSize);
+			}
+			else {
+				Update.printError(Serial);
+			}
+		}
+	}));
 
 	_server.on("/reboot", HTTP_GET, WebServer::THandlerFunction([]() {
 		_server.sendHeader("Connection", "close");
 		_server.send(200, "text/html", "done");
 		delay(1000);
 		ESP.restart();
-		}));
+	}));
 
 	_server.on("/stat", WebServer::THandlerFunction(iniServer->StatusViaWiFi));
 
@@ -81,28 +118,28 @@ void ServerTempatan::setup() {
 		delay(1000);
 		ESP.restart();}),
 			WebServer::THandlerFunction([]() {
-			HTTPUpload& upload = _server.upload();
-			if (upload.status == UPLOAD_FILE_START) {
-				Serial.printf("Update: %s\n", upload.filename.c_str());
-				if (!Update.begin(UPDATE_SIZE_UNKNOWN)) { //start with max available size
-					Update.printError(Serial);
-				}
+		HTTPUpload& upload = _server.upload();
+		if (upload.status == UPLOAD_FILE_START) {
+			Serial.printf("Update: %s\n", upload.filename.c_str());
+			if (!Update.begin(UPDATE_SIZE_UNKNOWN)) { //start with max available size
+				Update.printError(Serial);
 			}
-			else if (upload.status == UPLOAD_FILE_WRITE) {
-				/* flashing firmware to ESP*/
-				if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
-					Update.printError(Serial);
-				}
+		}
+		else if (upload.status == UPLOAD_FILE_WRITE) {
+			/* flashing firmware to ESP*/
+			if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
+				Update.printError(Serial);
 			}
-			else if (upload.status == UPLOAD_FILE_END) {
-				if (Update.end(true)) { //true to set the size to the current progress
-					Serial.printf("Update Success: %u\nRebooting...\n", upload.totalSize);
-				}
-				else {
-					Update.printError(Serial);
-				}
+		}
+		else if (upload.status == UPLOAD_FILE_END) {
+			if (Update.end(true)) { //true to set the size to the current progress
+				Serial.printf("Update Success: %u\nRebooting...\n", upload.totalSize);
 			}
-		}));
+			else {
+				Update.printError(Serial);
+			}
+		}
+	}));
 	_server.begin(80);
 	MDNS.begin("nine_mpro");
 
@@ -154,6 +191,10 @@ void ServerTempatan::StatusViaWiFi() {
 	msg += iniServer->alert;
 	msg += "</br>";
 
+	msg += "============================================== SPIFFS =====================================================</br>";
+
+	msg += iniServer->JSONSpiffs;
+
 	msg += "============================================== DEBUG =====================================================</br>";
 	String wkl = "";
 	if (iniServer->_oLantern->lanternRespond == 0)          wkl = "Not found";
@@ -173,12 +214,23 @@ void ServerTempatan::StatusViaWiFi() {
 	msg += "Normalize = ";
 	msg += iniServer->_oLantern->_nyalaNormal;
 	msg += "</br>";
-	msg += "Lantern nyala = ";
+	msg += "Prim Lantern nyala = ";
 	msg += iniServer->_oMando->M6data.LNyala;
 	msg += "</br>";
-	msg += "Lantern Vin = ";
+	msg += "Sec Lantern nyala = ";
+	msg += iniServer->_oMando->M6data.SLNyala;
+	msg += "</br>";
+	msg += "Use LDR = ";
+	msg += iniServer->_oMando->SpiffsData.Use_LDR;
+	msg += "</br>";
+	msg += "LDR Status = ";
+	msg += iniServer->_oMando->M6data.LDRStatus;
 //	msg += iniServer->_oMando->M6data.LVin;
 	msg += "</br>";
+	msg += "Debug LDR = ";
+	msg += iniServer->_oLantern->_debugLDR;
+	msg += "</br>";
+
 
 //	msg += "AIS port = " ;
 //	msg += iniServer->AppCommPort;
@@ -192,6 +244,12 @@ void ServerTempatan::StatusViaWiFi() {
 	msg += "</br>";
 	msg += "ABM = ";
 	msg += iniServer->_oMando->_abm;
+	msg += "</br>";
+	msg += "M6 Lamp = ";
+	msg += iniServer->_oMando->_debugLamp;
+	msg += "</br>";
+	msg += "M6 LDR = ";
+	msg += iniServer->_oMando->_debugLDR;
 	msg += "</br>";
 	msg += "Last msg21 = ";
 	msg += (millis() - iniServer->_oMando->agoM21) / 1000;
@@ -283,13 +341,20 @@ String ServerTempatan::makeJson() {
 	r["f"] = "##0.00";      //number format
 	r["c"] = "RM";        //currency
 	r["u"] = "0";       //currency
+	r["ar"] = false;
+	r["rr"] = "5";
 
 	JsonObject tab = jsonBasic.createNestedObject("tabs");
 	tab["1"] = "Monitor";
 	tab["2"] = "Config";
+	tab["3"] = "Firmware";																// Technical Support ONLY
+
+
 
 	String wkl;
 	JsonArray rows = jsonBasic.createNestedArray("rows");
+
+	jsonHandler->tambahRow(rows, "3", "37", "http://192.168.4.1/anOta", "");			// Technical Support ONLY
 
 	jsonHandler->tambahRow(rows, "1", "30", "Refresh", "");
 
@@ -311,7 +376,7 @@ String ServerTempatan::makeJson() {
 		}
 
 		jkl = String(millis() / 1000);
-		jsonHandler->tambahRow(rows, "1", "2", "Runtime/TimeUp\nBeat", String(millis() / 1000) + "/" + String((3600000-millis()) / 1000) + "\n" + wkl);
+		jsonHandler->tambahRow(rows, "1", "2", "Runtime\nBeat", String(millis() / 1000) + "\n" + wkl); // "/" + String((3600000-millis()) / 1000) +
 	}
 	else {
 		jkl = "";
@@ -341,7 +406,7 @@ String ServerTempatan::makeJson() {
 			wkl = _oMando->SpiffsData.Beat;
 		}
 
-		jsonHandler->tambahRow(rows, "1", "2", "Runtime/TimeUp\nBeat\nClock", String(millis() / 1000) + "/" + String((3600000-millis()) / 1000) + "\n" + wkl + "\n" + jkl);
+		jsonHandler->tambahRow(rows, "1", "2", "Runtime\nBeat\nClock", String(millis() / 1000) + "\n" + wkl + "\n" + jkl); //+ "/" + String((3600000-millis()) / 1000)
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -404,6 +469,7 @@ String ServerTempatan::makeJson() {
 	//////////////// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< LANTERN >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	jsonHandler->tambahRow(rows, "1", "0", "Lantern", "");
+//	jsonHandler->tambahRow(rows, "1", "2", "Sec Mon", _oMando->SpiffsData.Sec_Mon);
 	if (_oLantern->lanternRespond == 0)          wkl = _oLantern->getAlert();
 	else if (_oLantern->lanternRespond == 1)     wkl = "Searching Lantern";
 	if (_oLantern->lanternRespond == 2)     wkl = "Found SC35";
@@ -451,7 +517,7 @@ String ServerTempatan::makeJson() {
 
 			if (_oMando->M6data.Door)  doidoi = "Open";
 			else      doidoi = "Close";
-		if (strcmp(_oMando->SpiffsData.Sec_Mon.c_str(), "Yes")) {
+		if (_oMando->SpiffsData.Sec_Mon == "Yes") { //!strcmp(_oMando->SpiffsData.Sec_Mon.c_str(), "Yes")
 				if (_oMando->M6data.SLNyala == 0)                   wkl = "Off";
 				else if (_oMando->M6data.SLNyala == 1)              wkl = "On";
 				if (_oMando->M6data.LNyala == 0)                    jiii = "Off";
@@ -591,12 +657,22 @@ String ServerTempatan::makeJson() {
 				else        fb = "Off";
 			}
 
+			_oLantern->emergencyStat += " : ";
+			_oLantern->emergencyStat += rt;
+			_oLantern->emergencyStat += ",";
+
+			_oLantern->emergencyStat += fb;
+
+//			if (_oLantern->lanternlockB) {
+//				_oLantern->emergencyStat = "Locked : " + rt + "," + fb;
+//			}
+
 			if (!strcmp(_oMando->SpiffsData.RACON_Mon.c_str(), "No")) {
-				if (_oLantern->lanternlockB) {
-					_oLantern->emergencyStat = "Locked " + rt + " " + fb;
-				}
 				jsonHandler->tambahRow(rows, "1", "2", "EL Batt\nDiff/Thres\nEL Activity", String(_oMando->M6data.RVin, 2) + "\n" + String(_oLantern->PrimMaxMinDiff, 2) + "/" + String(_oLantern->Primthresholdamp, 2) + "\n" + _oLantern->emergencyStat);
 
+			}
+			else {
+				jsonHandler->tambahRow(rows, "1", "2", "EL Diff/Thres\nEL Activity", String(_oLantern->PrimMaxMinDiff, 2) + "/" + String(_oLantern->Primthresholdamp, 2) + "\n" + _oLantern->emergencyStat);
 			}
 		}
 	}
@@ -621,7 +697,7 @@ String ServerTempatan::makeJson() {
 		jsonHandler->tambahRow(rows, "2", "5", "Calib. Prim. (M)", _oMando->SpiffsData.Calib_Prim_M);
 	}
 	if (!strcmp(_oMando->SpiffsData.Format.c_str() , "GF-LR-BEACON")) {
-		jsonHandler->tambahRow(rows, "2", "0", "LANTERN - GF-LR-BEACON", "");
+//		jsonHandler->tambahRow(rows, "2", "0", "LANTERN - GF-LR-BEACON", "");
 		jsonHandler->tambahRow(rows, "2", "7", "Sec. Mon.", jsonHandler->cariDanTukar(JSONMonitorSecondary, ',', _oMando->SpiffsData.Sec_Mon));
 		jsonHandler->tambahRow(rows, "2", "5", "Calib. Sec. (M)", _oMando->SpiffsData.Calib_Sec_M);
 		jsonHandler->tambahRow(rows, "2", "7", "Reboot Mode", jsonHandler->cariDanTukar(JSONRebootMode, ',', _oMando->SpiffsData.Reboot_Mode));

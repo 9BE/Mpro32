@@ -65,7 +65,7 @@ public:
 	//lantern reader
 	bool jumpaLR = false;
 	String LanternStat;
-	float ThresApp;
+	float ThresApp = 0;
 
 	String LanternLongStatus;
 	bool lanternlock = false;
@@ -90,6 +90,8 @@ public:
 
 	uint8_t _nyalaNormal = 3;
 	int _lrNyala = 0;
+
+	int _debugLDR = 0;
 
 
 private:
@@ -134,6 +136,7 @@ private:
 	bool askLantern2 = false;
 	String alert = "";
 	int _prevNyala = 0;
+
 
 
 

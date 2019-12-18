@@ -456,6 +456,10 @@ void Mando::hantarDataMando() {
 			_hantarDelay = 1500;
 			_kaliHantarM6++;
 
+			// UTK DEBUG SECONDARY
+			_debugLamp = ais_msg->_debLamp;
+			_debugLDR = ais_msg->_debLDR;
+
 			delete ais_msg;
 		}
 		else if (mandoTask == cAID1) {

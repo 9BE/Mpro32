@@ -27,6 +27,9 @@ public:
 	String getPara(String& data, char index);
 	bool validate(String& word);
 
+	int _debLamp = 0;
+	int _debLDR = 0;
+
 private:
 	void message6bits(long data, char nums, char * memory);
 	void genEncData(char *memory);

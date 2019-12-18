@@ -2,6 +2,20 @@
 #ifndef PAGES_H_
 #define PAGES_H_
 
+const char otaApps[] PROGMEM = R"=====(
+	<!DOCTYPE html> <html>
+	</body>
+	<form action="/anUpdate" method="POST">
+		<input type='file' name="update">
+		<input type='submit' value='Update'>
+		<a href="http://192.168.4.1/reboot">Reboot</a>
+	</form>
+
+	<h5>[note]</h5>
+
+	</body>
+	</html>)=====";
+
 const char ota[] PROGMEM = R"=====(
 	<style>
 	.example1 {

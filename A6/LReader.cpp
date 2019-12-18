@@ -93,13 +93,19 @@ void LReader::Buoy() {
 							iniLreader->_oLantern->emergencyStat = "Processing";
 							iniLreader->_oLantern->PrimMaxMinDiff = DiffPrimary.toFloat();
 							iniLreader->_oLantern->Primthresholdamp = Thr.toFloat();
-							iniLreader->_oMando->M6data.ELStat = Light.toInt();
-							if (iniLreader->_oMando->M6data.ELStat) {
-								iniLreader->_oLantern->_lrNyala = 1;
-//								iniLreader->_oMando->M6data.LNyala = 1;
+							iniLreader->_oLantern->_lrNyala = Light.toInt();
+//							iniLreader->_oMando->M6data.ELStat = Light.toInt();
+//							if (iniLreader->_oMando->M6data.ELStat) {
+//								iniLreader->_oLantern->_lrNyala = 1;
+//								//								iniLreader->_oMando->M6data.LNyala = 1;
+//							}
+							if (!strcmp(iniLreader->_oMando->SpiffsData.RACON_Mon.c_str(), "No")) {
+								float vin = Voltage.toFloat();
+								if (vin > 5) {
+									iniLreader->_oMando->M6data.RVin = vin;
+								}
+//								iniLreader->_oMando->M6data.RVin = Voltage.toFloat();
 							}
-						if (!strcmp(iniLreader->_oMando->SpiffsData.RACON_Mon.c_str(), "No"))
-							iniLreader->_oMando->M6data.RVin = Voltage.toFloat();
 						}
 						else if (strcmp(iniLreader->_oMando->SpiffsData.Format.c_str(),"GF-LR-LIGHTHOUSE")) {
 							iniLreader->_oLantern->PrimMaxMinDiff = DiffPrimary.toFloat();
@@ -113,8 +119,8 @@ void LReader::Buoy() {
 							if (vin > 5) {
 								iniLreader->_oMando->M6data.LVin = vin;
 							}
-//							iniLreader->_oMando->M6data.LVin = Voltage.toFloat();
-//							iniLreader->_oMando->M6data.LNyala = Light.toInt();
+							//							iniLreader->_oMando->M6data.LVin = Voltage.toFloat();
+							//							iniLreader->_oMando->M6data.LNyala = Light.toInt();
 							iniLreader->_oLantern->_lrNyala = Light.toInt();
 							iniLreader->_oLantern->ThresApp = iniLreader->_oLantern->Primthresholdamp;
 						}
@@ -125,31 +131,50 @@ void LReader::Buoy() {
 						String DiffPrimary = root["DiffPrimary"];         //dah
 						String Thr = root["ThresholdPrim"];               //dah
 						String Light = root["Light"];                     //dah
+						int lampu = Light.toInt();
+
+						if (lampu == 1) {
+							iniLreader->_tempAtonBit = "E2";
+						}else if (lampu == 0) {
+							iniLreader->_tempAtonBit = "E4";
+						}
 
 						if (!strcmp(iniLreader->_oMando->SpiffsData.Format.c_str(),"GF-LR-LIGHTHOUSE") && !iniLreader->_oLantern->lanternlockB) {
 							iniLreader->_oLantern->PrimMaxMinDiff = DiffPrimary.toFloat();
 							iniLreader->_oLantern->Primthresholdamp = Thr.toFloat();
 
 
-							if (iniLreader->_oLantern->PrimMaxMinDiff < iniLreader->_oLantern->Primthresholdamp) {
-								iniLreader->_oMando->M6data.ELStat = 0;
-							}
-							else {
-								iniLreader->_oMando->M6data.ELStat = 1;
-							}
+//							if (iniLreader->_oLantern->PrimMaxMinDiff < iniLreader->_oLantern->Primthresholdamp) {
+//								iniLreader->_oMando->M6data.ELStat = 0;
+//							}
+//							else {
+//								iniLreader->_oMando->M6data.ELStat = 1;
+//							}
 							iniLreader->_oLantern->lanternlockB = true;
-							iniLreader->_oMando->M6data.ELStat = Light.toInt();
+//							iniLreader->_oMando->M6data.ELStat = Light.toInt();
+
+
+							//								iniLreader->_oMando->M6data.LNyala = lampu;
+//							iniLreader->_oLantern->_lrNyala = lampu;
+							iniLreader->_oMando->M6data.ELStat = lampu;
+
 							iniLreader->_oLantern->emergencyStat = "Locked";
-							if (iniLreader->_oMando->M6data.ELStat) {
-								iniLreader->_oLantern->_lrNyala = 1;
-//								iniLreader->_oMando->M6data.LNyala = 1;
-							}
+//							if (iniLreader->_oMando->M6data.ELStat) {
+//								iniLreader->_oLantern->_lrNyala = 1;
+//								//								iniLreader->_oMando->M6data.LNyala = 1;
+//							}else {
+//								iniLreader->_oLantern->_lrNyala = 0;
+//							}
 							if (!strcmp(iniLreader->_oMando->SpiffsData.RACON_Mon.c_str(), "No")) {
-								iniLreader->_oMando->M6data.RVin = Voltage.toFloat();
+								float vin = Voltage.toFloat();
+								if (vin > 5) {
+									iniLreader->_oMando->M6data.RVin = vin;
+								}
+//								iniLreader->_oMando->M6data.RVin = Voltage.toFloat();
 							}
-							if (iniLreader->_oLantern->lanternlockB & iniLreader->_oLantern->lanternlockC) {
-								iniLreader->_oLantern->LanternLongStatus = "Data locked.";
-							}
+//							if (iniLreader->_oLantern->lanternlockB & iniLreader->_oLantern->lanternlockC) {
+//								iniLreader->_oLantern->LanternLongStatus = "Data locked.";
+//							}
 						}
 						else if (strcmp(iniLreader->_oMando->SpiffsData.Format.c_str(),"GF-LR-LIGHTHOUSE")) {
 							float vin = Voltage.toFloat();
@@ -164,15 +189,15 @@ void LReader::Buoy() {
 							iniLreader->_oLantern->ThresApp = iniLreader->_oLantern->Primthresholdamp;
 
 							if (strcmp(iniLreader->_oMando->SpiffsData.Light_Detect_Method.c_str(), "AI")) {
-								int lampu = Light.toInt();
+//								int lampu = Light.toInt();
+//
+//								if (lampu == 1) {
+//									iniLreader->_tempAtonBit = "E2";
+//								}else if (lampu == 0) {
+//									iniLreader->_tempAtonBit = "E4";
+//								}
 
-								if (lampu == 1) {
-									iniLreader->_tempAtonBit = "E2";
-								}else if (lampu == 0) {
-									iniLreader->_tempAtonBit = "E4";
-								}
-
-//								iniLreader->_oMando->M6data.LNyala = lampu;
+								//								iniLreader->_oMando->M6data.LNyala = lampu;
 								iniLreader->_oLantern->_lrNyala = lampu;
 
 							}
@@ -224,11 +249,21 @@ void LReader::Buoy() {
 
 	if (iniLreader->_oLantern->LanternStat == "Locked") {
 		log_i("$$$$$$$$$$$$$$$$$$$$$$");
-		log_i("$$$$$$ LVin = %f", iniLreader->_oMando->M6data.LVin);
-		log_i("$$$$$$ PrimMaxMinDiff = %f", iniLreader->_oLantern->PrimMaxMinDiff);
-		log_i("$$$$$$ Primthresholdamp = %f", iniLreader->_oLantern->Primthresholdamp);
-		log_i("$$$$$$ ThresApp = %f", iniLreader->_oLantern->ThresApp);
-		log_i("$$$$$$ LNyala = %d", iniLreader->_oMando->M6data.LNyala);
+		if (strcmp(iniLreader->_oMando->SpiffsData.Format.c_str(),"GF-LR-LIGHTHOUSE")) {
+			log_i("$$$$$$ LVin = %f", iniLreader->_oMando->M6data.LVin);
+			log_i("$$$$$$ PrimMaxMinDiff = %f", iniLreader->_oLantern->PrimMaxMinDiff);
+			log_i("$$$$$$ Primthresholdamp = %f", iniLreader->_oLantern->Primthresholdamp);
+			log_i("$$$$$$ ThresApp = %f", iniLreader->_oLantern->ThresApp);
+			log_i("$$$$$$ LNyala = %d", iniLreader->_oMando->M6data.LNyala);
+		}
+		else {
+			log_i("$$$$$$ PrimMaxMinDiff = %f", iniLreader->_oLantern->PrimMaxMinDiff);
+			log_i("$$$$$$ Primthresholdamp = %f", iniLreader->_oLantern->Primthresholdamp);
+			log_i("$$$$$$ LNyala = %d", iniLreader->_oMando->M6data.LNyala);
+			log_i("$$$$$$ ELStat = %d", iniLreader->_oMando->M6data.ELStat);
+			log_i("$$$$$$ ELCond prev = %d", iniLreader->_oMando->M6data.ELCond);
+		}
+
 	}
 
 	log_i("$$$$$$$$$$$$$$$$$$$$$$  ==>> %d", millis()/1000);
@@ -265,6 +300,7 @@ void LReader::Lighthouse() {
 				if (_server.argName(i) == "req") {
 
 					String ss = _server.arg(i);
+					log_i("Lighthouse req :: %s", ss.c_str());
 					const size_t bufferSize = JSON_OBJECT_SIZE(6) + 90; //asalnya JSON_OBJECT_SIZE(10) + 140;
 					DynamicJsonDocument root(bufferSize);
 					deserializeJson(root, ss);
@@ -302,8 +338,10 @@ void LReader::Lighthouse() {
 						welp = D[14];  iniLreader->_oLantern->Xtra1 = welp.toInt();    //0-No;1-Yes
 						welp = D[15];  iniLreader->_oLantern->Xtra2 = welp.toInt();    //0-No;1-Yes
 
-						if (iniLreader->_oMando->M6data.MLStat | iniLreader->_oMando->M6data.SLStat) {
+						if (iniLreader->_oMando->M6data.MLStat || iniLreader->_oMando->M6data.SLStat) {
 							iniLreader->_oMando->M6data.LNyala = 1;
+						}else {
+							iniLreader->_oMando->M6data.LNyala = 0;
 						}
 						if (iniLreader->_oLantern->lanternlockB & iniLreader->_oLantern->lanternlockC) {
 							iniLreader->_oLantern->LanternLongStatus = "Data locked.";
@@ -332,6 +370,37 @@ void LReader::Lighthouse() {
 	if (strcmp(iniLreader->_oMando->SpiffsData.Lantern_Lost.c_str(), "0")) {
 		iniLreader->_oMando->SpiffsData.Lantern_Lost = "0";
 	}
+
+	log_i("$$$$$$$$$$$$$$$$$$$$$$");
+	log_i("$$$$$$ GF-LR-LIGHTHOUSE");
+	log_i("$$$$$$ LanternStat = %s", iniLreader->_oLantern->LanternStat.c_str());
+
+	if (iniLreader->_oLantern->LanternStat == "Locked") {
+		log_i("$$$$$$$$$$$$$$$$$$$$$$");
+		log_i("$$$$$$ LVin = %f", iniLreader->_oMando->M6data.LVin);
+		log_i("$$$$$$ LDRStatus = %d", iniLreader->_oMando->M6data.LDRStatus);
+		log_i("$$$$$$ RVin = %f", iniLreader->_oMando->M6data.RVin);
+		log_i("$$$$$$ FreeContact = %d", iniLreader->_oLantern->FreeContact);
+		log_i("$$$$$$$$$$$$$$$$$$$$$$");
+		log_i("$$$$$$ MLCond = %d", iniLreader->_oMando->M6data.MLCond);
+		log_i("$$$$$$ MLStat = %d", iniLreader->_oMando->M6data.MLStat);
+		log_i("$$$$$$ SLCond = %d", iniLreader->_oMando->M6data.SLCond);
+		log_i("$$$$$$ SLStat = %d", iniLreader->_oMando->M6data.SLStat);
+		log_i("$$$$$$ D1Stat = %d", iniLreader->_oMando->M6data.D1Stat);
+		log_i("$$$$$$ D1Cond = %d", iniLreader->_oMando->M6data.D1Cond);
+		log_i("$$$$$$ D2Stat = %d", iniLreader->_oMando->M6data.D2Stat);
+		log_i("$$$$$$ D2Cond = %d", iniLreader->_oMando->M6data.D2Cond);
+		log_i("$$$$$$ Door = %d", iniLreader->_oMando->M6data.Door);
+		log_i("$$$$$$ ACPower = %d", iniLreader->_oMando->M6data.ACPower);
+		log_i("$$$$$$ BMS = %d", iniLreader->_oMando->M6data.BMS);
+		log_i("$$$$$$ PSU = %d", iniLreader->_oLantern->PSU);
+		log_i("$$$$$$ Xtra1 = %d", iniLreader->_oLantern->Xtra1);
+		log_i("$$$$$$ Xtra2 = %d", iniLreader->_oLantern->Xtra2);
+
+
+	}
+
+	log_i("$$$$$$$$$$$$$$$$$$$$$$  ==>> %d", millis()/1000);
 }
 
 void LReader::Beacon() {
@@ -341,8 +410,10 @@ void LReader::Beacon() {
 				if (_server.argName(i) == "req") {
 
 					String ss = _server.arg(i);
+					log_i("$$$$$$$$$$$$$$$$$$$$$$");
+					log_i("$$$$$$ Response = %s", ss.c_str());
 					const size_t bufferSize = JSON_OBJECT_SIZE(6) + 90;
-					DynamicJsonDocument root(bufferSize);
+					DynamicJsonDocument root(1024);
 					deserializeJson(root, ss);
 					String Status = root["Status"];
 					String Runtime = root["Counting"];
@@ -354,12 +425,12 @@ void LReader::Beacon() {
 						iniLreader->_oLantern->LanternLongStatus += "s.";
 					}
 					else if (iniLreader->_oLantern->LanternStat == "Calibrating") {
-						iniLreader->_oLantern->LanternLongStatus = "Calibrating. Countdown: ";   //dah
+						iniLreader->_oLantern->LanternLongStatus = "Calibrating. Countdown ";   //dah
 						iniLreader->_oLantern->LanternLongStatus += Runtime;                     //dah
 						iniLreader->_oLantern->LanternLongStatus += "s.";
 					}
 					else if (iniLreader->_oLantern->LanternStat == "Processing") {
-						iniLreader->_oLantern->LanternLongStatus = "Processing. Countdown: ";   //dah
+						iniLreader->_oLantern->LanternLongStatus = "Processing. Countdown ";   //dah
 						iniLreader->_oLantern->LanternLongStatus += Runtime;                     //dah
 						iniLreader->_oLantern->LanternLongStatus += "s.";
 						String Voltage = root["Voltage"];
@@ -389,44 +460,48 @@ void LReader::Beacon() {
 						iniLreader->_oMando->M6data.SLNyala = LightSec.toInt();
 					}
 					else if (iniLreader->_oLantern->LanternStat == "Locked") {
-						iniLreader->_oLantern->lanternlock = true;
-						iniLreader->_oLantern->LanternLongStatus = "Data locked.";
 						String Voltage = root["Voltage"];
-						String DiffPrim = root["DiffPrim"];
-						String ThresPrim = root["ThresPrim"];
-						String DiffSec = root["DiffSec"];
-						String ThresSec = root["ThresSec"];
-						String LightPrim = root["LightPrim"];                     //decision is made by Lantern Reader.
-						String LightSec = root["LightSec"];                     //decision is made by Lantern Reader.
-						String RaconVoltage = root["RACONVoltage"];
-						iniLreader->_oMando->M6data.RVin = RaconVoltage.toFloat();
-						String RaconContact = root["RACONContact"];         //0 open; 1 contact. decide based on configuration.
-						String LDR_ = root["LDR"];
-						iniLreader->_oMando->M6data.LDRStatus = LDR_.toInt();
-						String Door_ = root["Door"];
-						iniLreader->_oMando->M6data.Door = Door_.toInt();
-						iniLreader->_oMando->M6data.LVin = Voltage.toFloat();
-						iniLreader->_oLantern->FreeContact = RaconContact.toInt();
+						if (Voltage.toFloat() > 5) {
+							iniLreader->_oLantern->lanternlock = true;
+							iniLreader->_oLantern->LanternLongStatus = "Data locked.";
+							String Voltage = root["Voltage"];
+							String DiffPrim = root["DiffPrim"];
+							String ThresPrim = root["ThresPrim"];
+							String DiffSec = root["DiffSec"];
+							String ThresSec = root["ThresSec"];
+							String LightPrim = root["LightPrim"];                     //decision is made by Lantern Reader.
+							String LightSec = root["LightSec"];                     //decision is made by Lantern Reader.
+							String RaconVoltage = root["RACONVoltage"];
+							iniLreader->_oMando->M6data.RVin = RaconVoltage.toFloat();
+							String RaconContact = root["RACONContact"];         //0 open; 1 contact. decide based on configuration.
+							String LDR_ = root["LDR"];
+							log_i("$$$$$$ LDRStatus = %s", LDR_.c_str());
+							log_i("$$$$$$$$$$$$$$$$$$$$$$");
+							iniLreader->_oMando->M6data.LDRStatus = LDR_.toInt();
+							String Door_ = root["Door"];
+							iniLreader->_oMando->M6data.Door = Door_.toInt();
+							iniLreader->_oMando->M6data.LVin = Voltage.toFloat();
+							iniLreader->_oLantern->FreeContact = RaconContact.toInt();
 
-						iniLreader->_oLantern->PrimMaxMinDiff = DiffPrim.toFloat();
-						iniLreader->_oLantern->Primthresholdamp = ThresPrim.toFloat();
+							iniLreader->_oLantern->PrimMaxMinDiff = DiffPrim.toFloat();
+							iniLreader->_oLantern->Primthresholdamp = ThresPrim.toFloat();
 
-						iniLreader->_oLantern->SecMaxMinDiff = DiffSec.toFloat();
-						iniLreader->_oLantern->Secthresholdamp = ThresSec.toFloat();
+							iniLreader->_oLantern->SecMaxMinDiff = DiffSec.toFloat();
+							iniLreader->_oLantern->Secthresholdamp = ThresSec.toFloat();
 
-						iniLreader->_oMando->M6data.LNyala = LightPrim.toInt();
-						iniLreader->_oMando->M6data.SLNyala = LightSec.toInt();
+							iniLreader->_oMando->M6data.LNyala = LightPrim.toInt();
+							iniLreader->_oMando->M6data.SLNyala = LightSec.toInt();
 
-						if (!iniLreader->_oMando->M6data.LNyala && (iniLreader->_oMando->M6data.LDRStatus == 3 || iniLreader->_oMando->M6data.LDRStatus == 2 || iniLreader->_oMando->M6data.LDRStatus == 0))
-							iniLreader->_oLantern->LanternLongStatus += "\nNo Light";
-						else if(iniLreader->_oMando->M6data.LNyala)
-							iniLreader->_oLantern->LanternLongStatus += "\nOn Primary";
-						else if(iniLreader->_oMando->M6data.SLNyala)
-							iniLreader->_oLantern->LanternLongStatus += "\nOn Secondary";
-						else
-							iniLreader->_oLantern->LanternLongStatus += "\nLight Error";
+							if (!iniLreader->_oMando->M6data.LNyala && (iniLreader->_oMando->M6data.LDRStatus == 3 || iniLreader->_oMando->M6data.LDRStatus == 2 || iniLreader->_oMando->M6data.LDRStatus == 0))
+								iniLreader->_oLantern->LanternLongStatus += "\nNo Light";
+							else if(iniLreader->_oMando->M6data.LNyala)
+								iniLreader->_oLantern->LanternLongStatus += "\nOn Primary";
+							else if(iniLreader->_oMando->M6data.SLNyala)
+								iniLreader->_oLantern->LanternLongStatus += "\nOn Secondary";
+							else
+								iniLreader->_oLantern->LanternLongStatus += "\nLight Error";
+						}
 					}
-
 				}
 			}
 		}
@@ -435,24 +510,60 @@ void LReader::Beacon() {
 	iniLreader->_oLantern->jumpaLR = true;
 	_server.send(200, "application/json",  String(iniLreader->_oMando->SpiffsData.Calibrate) + "," + iniLreader->_oMando->SpiffsData.Sec_Mon + "," + iniLreader->_oMando->SpiffsData.Calib_Prim_M + "," + iniLreader->_oMando->SpiffsData.Calib_Sec_M + "," + iniLreader->_oMando->SpiffsData.Light_Detect_Method + "," + iniLreader->_oMando->SpiffsData.Reboot_Mode);
 
+	bool ada = false;
 	if (strcmp(iniLreader->_oMando->SpiffsData.Calibrate.c_str(), "No")) {
 		iniLreader->_oMando->SpiffsData.Calibrate = "No";
+		ada = true;
 	}
 
 	if (strcmp(iniLreader->_oMando->SpiffsData.Format.c_str(), "GF-LR-BEACON")) {
 		iniLreader->_oMando->SpiffsData.Format = "GF-LR-BEACON";
+		ada = true;
 	}
 
 	if (!strcmp(iniLreader->_oMando->SpiffsData.DAC.c_str(), "533")) {
-		if (strcmp(iniLreader->_oMando->SpiffsData.FI.c_str(), "1"))
+		if (strcmp(iniLreader->_oMando->SpiffsData.FI.c_str(), "1")) {
 			iniLreader->_oMando->SpiffsData.FI = "1";
+			ada = true;
+		}
 	}
 
-	if (strcmp(iniLreader->_oMando->SpiffsData.Use_LDR.c_str(), "YES")) {
-		iniLreader->_oMando->SpiffsData.Use_LDR = "YES";
+	if (strcmp(iniLreader->_oMando->SpiffsData.Use_LDR.c_str(), "Yes")) {
+		iniLreader->_oMando->SpiffsData.Use_LDR = "Yes";
+		ada = true;
 	}
 
 	if (strcmp(iniLreader->_oMando->SpiffsData.Lantern_Lost.c_str(), "0")) {
 		iniLreader->_oMando->SpiffsData.Lantern_Lost = "0";
+		ada = true;
 	}
+
+
+
+	if (ada) {
+		JsonHandler *jsonHandler;
+		jsonHandler = new JsonHandler(iniLreader->_oMando);
+		if (jsonHandler->simpanConfData()) {
+			delete jsonHandler;
+		}else {
+			delete jsonHandler;
+		}
+	}
+
+
+	log_i("$$$$$$$$$$$$$$$$$$$$$$");
+	log_i("$$$$$$ GF-LR-BEACON");
+	log_i("$$$$$$ LanternStat = %s", iniLreader->_oLantern->LanternStat.c_str());
+
+	if (iniLreader->_oLantern->LanternStat == "Locked") {
+		log_i("$$$$$$$$$$$$$$$$$$$$$$");
+		log_i("$$$$$$ LVin = %f", iniLreader->_oMando->M6data.LVin);
+		log_i("$$$$$$ PrimMaxMinDiff = %f", iniLreader->_oLantern->PrimMaxMinDiff);
+		log_i("$$$$$$ Primthresholdamp = %f", iniLreader->_oLantern->Primthresholdamp);
+		log_i("$$$$$$ LNyala = %d", iniLreader->_oMando->M6data.LNyala);
+		log_i("$$$$$$ LDRStatus = %d", iniLreader->_oMando->M6data.LDRStatus);
+	}
+
+	log_i("$$$$$$$$$$$$$$$$$$$$$$  ==>> %d", millis()/1000);
+
 }

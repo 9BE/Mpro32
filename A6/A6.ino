@@ -75,6 +75,7 @@ void setup()
 	binFile = __FILE__;
 	binFile = binFile.substring(3, binFile.length());
 	binFile = binFile.substring(0, binFile.length()-4);
+	binFile += "_1 (release)";
 
 	log_i("binFile :: %s\n", binFile.c_str());
 
@@ -90,9 +91,9 @@ void setup()
 
 	setupSPIFFiles(false);
 
-
-	locWiFi = new LocWiFi(0,5000, &xValWiFi);
 	xValWiFi = lw_wifi_apsta;
+	locWiFi = new LocWiFi(0,5000, &xValWiFi);
+
 
 	delay(1000);
 
@@ -266,7 +267,7 @@ void mainPower() {
 
 	_oMando->M6data.MVin = _oMando->M6data.MVin * 22.6309669918;
 	_oMando->M6data.MVin += 3.3371091445;
-	log_i("MVin voltage >>>>>>>>>>>>>>>>>>> %g", _oMando->M6data.MVin);
+//	log_i("MVin voltage >>>>>>>>>>>>>>>>>>> %g", _oMando->M6data.MVin);
 
 //	_oMando->M6data.MVin = adcBattery * 0.0147229551;
 //	_oMando->M6data.MVin += 4.0259366755;
@@ -275,12 +276,12 @@ void mainPower() {
 
 	if (_oMando->M6data.MVin > MVinX) {
 		powerOK = true;
-		log_i("**********************************************************************************************");
-		log_i("**********************************************************************************************");
-		log_i("************************************** POWER OK at %d **************************************", millis()/1000);
-		log_i("************************************** %f **************************************", _oMando->M6data.MVin);
-		log_i("**********************************************************************************************");
-		log_i("**********************************************************************************************");
+//		log_i("**********************************************************************************************");
+//		log_i("**********************************************************************************************");
+//		log_i("************************************** POWER OK at %d **************************************", millis()/1000);
+//		log_i("************************************** %f **************************************", _oMando->M6data.MVin);
+//		log_i("**********************************************************************************************");
+//		log_i("**********************************************************************************************");
 
 	}else {
 		powerOK = false;
@@ -371,6 +372,7 @@ inline void setupSPIFFiles(bool freshSetup) {
 
 
 	jsonHandler->extractConfData();
+
 	delay(1000);
 
 	delete jsonHandler;
@@ -417,7 +419,7 @@ inline void urusAlert() {
 	}else {
 		alert = "Query AIS device";
 		if (_oMando->getMandoTaskStat() == mt_none) {
-			if (millis() > 30000) {
+			if (millis() > 60000) {
 				alert = "AIS information not found. Please configure the device.";
 			}
 		}
@@ -539,7 +541,7 @@ inline void urusAIS() {
 //	}
 
 //	 ==> SEND MSG 6
-	if (jumpaAIS && millis() - _oMando->_masaMando >= 180000) { //600000
+	if (jumpaAIS && millis() - _oMando->_masaMando >= 60000) { //600000 // 180000
 		tungguVDO = true;
 		if (_oMando->_inputMandoVdo21 && powerOK) {
 			tungguLantern = true;

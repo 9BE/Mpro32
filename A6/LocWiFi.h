@@ -10,6 +10,7 @@
 
 #include "Arduino.h"
 #include "LocSpiff.h"
+#include "board.h"
 
 
 enum{
@@ -29,6 +30,7 @@ private:
 	std::vector<std::vector<String>> _sList;
 	int 	_loopDelay;
 	int * 	_lookVal;
+	bool	_dahAP = false;
 public:
 	LocWiFi(int core, int loopDelay, int *lookVal);
 	virtual ~LocWiFi();
