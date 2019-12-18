@@ -52,19 +52,19 @@ struct msg6Data {
 	int LDRStatus = 0;
 	int LNyala=0;             // 4,9,kanan
 	int SLNyala = 0;
-	bool Door;
-	bool MLCond;
-	bool MLStat;
-	bool SLCond;
-	bool SLStat;
-	bool ELCond;
-	bool ELStat;
-	bool D1Cond;
-	bool D1Stat;
-	bool D2Cond;
-	bool D2Stat;
-	bool ACPower;
-	bool BMS;
+	bool Door = false;
+	bool MLCond = false;
+	bool MLStat = false;
+	bool SLCond = false;
+	bool SLStat = false;
+	bool ELCond = false;
+	bool ELStat = false;
+	bool D1Cond = false;
+	bool D1Stat= false;
+	bool D2Cond = false;
+	bool D2Stat = false;
+	bool ACPower = false;
+	bool BMS = false;
 	int LLedTemp=0;           // 4,11,kanan.
 
 
