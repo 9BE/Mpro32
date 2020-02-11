@@ -351,7 +351,7 @@ void Mando::hantarDataMando() {
 			Serial2.println("$ECAIQ,ACE*34");
 			Serial2.flush();
 
-			log_i("ACE =============== $ECAIQ,ACE*34 :: at %d", millis());
+//			log_i("ACE =============== $ECAIQ,ACE*34 :: at %d", millis());
 
 			iniMando->_runCtr = millis();
 			_hantarDelay = 1500;

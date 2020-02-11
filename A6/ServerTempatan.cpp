@@ -120,16 +120,21 @@ void ServerTempatan::setup() {
 			WebServer::THandlerFunction([]() {
 		HTTPUpload& upload = _server.upload();
 		if (upload.status == UPLOAD_FILE_START) {
-			Serial.printf("Update: %s\n", upload.filename.c_str());
+			Serial.printf("Update: %s :: %d \n", upload.filename.c_str(), upload.totalSize);
 			if (!Update.begin(UPDATE_SIZE_UNKNOWN)) { //start with max available size
 				Update.printError(Serial);
 			}
 		}
 		else if (upload.status == UPLOAD_FILE_WRITE) {
 			/* flashing firmware to ESP*/
+			Serial.println(upload.currentSize);
+			Serial.print("upload buf 0 == ");
+			Serial.println(upload.buf[0], HEX);
 			if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
 				Update.printError(Serial);
 			}
+
+
 		}
 		else if (upload.status == UPLOAD_FILE_END) {
 			if (Update.end(true)) { //true to set the size to the current progress

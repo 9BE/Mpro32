@@ -73,7 +73,7 @@ String JsonHandler::checkConfigValue(String data, bool freshSetup) {
 		jDoc.clear();
 		res="";
 		jDoc["Beat"] = "0";
-		jDoc["Reboot Mode"] = "1Min every 5Min";
+		jDoc["Reboot Mode"] = "No";
 		jDoc["Light Detect Method"] = "Fix";
 		jDoc["Format"] = "GF-LR-BUOY";
 		jDoc["DAC"] = "533";

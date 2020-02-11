@@ -68,14 +68,15 @@ void setup()
 	pinMode(OUT_DR, OUTPUT);            //set pin driver/receiver enable for rs485 as output
 	pinMode(LED_PIN, OUTPUT);
 
-	mainLampu(1, 500);
+	digitalWrite(LED_PIN, HIGH);
+//	mainLampu(5, 500);
 	log_i("\n\n\n\nSalam Dunia dari %s\n\n\n\n", __FILE__);
 	log_i("MULAI");
 
 	binFile = __FILE__;
 	binFile = binFile.substring(3, binFile.length());
 	binFile = binFile.substring(0, binFile.length()-4);
-	binFile += "_1 (release)";
+	binFile += "_3 (beta)";
 
 	log_i("binFile :: %s\n", binFile.c_str());
 
@@ -92,7 +93,7 @@ void setup()
 	setupSPIFFiles(false);
 
 	xValWiFi = lw_wifi_apsta;
-	locWiFi = new LocWiFi(0,5000, &xValWiFi);
+	locWiFi = new LocWiFi(0,60000, &xValWiFi);
 
 
 	delay(1000);
@@ -100,7 +101,8 @@ void setup()
 	_oServer = new ServerTempatan(0, 100, _oMando, _oLantern, _oLreader, _oTiming);
 	_oServer->setBinFile(binFile);
 
-	mainLampu(3, 500);
+//	mainLampu(3, 500);
+	digitalWrite(LED_PIN, LOW);
 
 //	WiFi.setTxPower(WIFI_POWER_19_5dBm); // test kene buang utk sebenar
 
@@ -152,10 +154,10 @@ void loop()
 	if (_oTiming->tickTock()) {
 		_oTiming->susunMasa(_oMando->lat, _oMando->lng);
 		mainLampu(1, 25);
-		log_i("  ticTock :::::::::: %d", millis()/1000);
-		log_i(" Mando task ::::: %d", _oMando->getMandoTaskStat());
-		log_i("Lantern task :: %d", _oLantern->getLanternTaskStat());
-		log_i("TX POWER ************************** %d", (int) WiFi.getTxPower());
+//		log_i("  ticTock :::::::::: %d", millis()/1000);
+//		log_i(" Mando task ::::: %d", _oMando->getMandoTaskStat());
+//		log_i("Lantern task :: %d", _oLantern->getLanternTaskStat());
+//		log_i("TX POWER ************************** %d", (int) WiFi.getTxPower());
 		if (_oTiming->ZoneTime == e_nite) {
 			// malam
 			if (!malam) {
@@ -215,11 +217,19 @@ void loop()
 		// repeat;
 		espReboot();
 		delay(3000);
-		_oMando->reInit();
-		_oLantern->reInit();
-		_oMando->setMulai(true);
-		_oLantern->setMulai(true);
-		masaReboot = millis();
+		ESP.restart();
+
+
+//		if (millis() - _oMando->getMasaNmea() >= 3600000) {
+//			ESP.restart();
+//			delay(10);
+//		}
+//
+//		_oMando->reInit();
+//		_oLantern->reInit();
+//		_oMando->setMulai(true);
+//		_oLantern->setMulai(true);
+//		masaReboot = millis();
 
 	}
 
@@ -243,6 +253,7 @@ inline void getVcc() {
 	}else if (_vcc < 3.19){
 		_vcc = 3.6;
 	}
+//	_vcc = 3.6;
 }
 
 
