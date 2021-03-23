@@ -24,6 +24,7 @@ uint64_t masaLantern = 0;
 uint64_t masaPower = 0;
 uint64_t masaTestMando = 0;
 uint64_t masaReboot= 0;
+uint32_t masaVin = 0;
 
 int xValWiFi = 0;
 
@@ -31,6 +32,7 @@ int xValWiFi = 0;
 float MVinX = 15;
 float adcBattery = 0;
 float _vcc = 0;
+float adcVcc = 0;
 
 String alert = "Booting controller";
 String binFile;
@@ -39,9 +41,12 @@ bool powerOK = false;
 bool tungguLantern = false;
 bool tungguVDO = false;
 
+int kaliVcc = 0;
+
 int txPowerRangers = 78;
 
 uint8_t malam = 1;
+
 
 // *************************** PROTOTYPING *************************************
 
@@ -55,6 +60,8 @@ void urusAlert();
 void urusConfig();
 void urusAIS();
 void getVcc();
+
+float regress(float x);
 
 
 //The setup function is called once at startup of the sketch
@@ -76,11 +83,11 @@ void setup()
 	binFile = __FILE__;
 	binFile = binFile.substring(3, binFile.length());
 	binFile = binFile.substring(0, binFile.length()-4);
-	binFile += "_3 (beta)";
+	binFile += "_4 (alpha)";
 
 	log_i("binFile :: %s\n", binFile.c_str());
 
-	getVcc();					// Get internal VCC
+
 
 	_oTiming = new timing();
 	_oMando = new Mando(1, 50, _oTiming);
@@ -90,10 +97,10 @@ void setup()
 	_oMando->SpiffsData.Beat = "2";
 
 
-	setupSPIFFiles(false);
+	setupSPIFFiles(true);
 
 	xValWiFi = lw_wifi_apsta;
-	locWiFi = new LocWiFi(0,60000, &xValWiFi);
+	locWiFi = new LocWiFi(0,15000, &xValWiFi);
 
 
 	delay(1000);
@@ -116,8 +123,8 @@ void setup()
 
 	_oMando->_masaMando = millis();
 
-	esp_task_wdt_init(180, true);
-	enableLoopWDT();
+//	esp_task_wdt_init(180, true);
+//	enableLoopWDT();
 }
 
 // The loop function is called in an endless loop
@@ -174,10 +181,20 @@ void loop()
 	}
 
 	// ==> MAIN POWER
-	if (millis() - masaPower >= 50) {
+	if (millis() - masaPower >= 100) {
 		masaPower = millis();
+		if (kaliVcc<50) {
+			getVcc();
+			kaliVcc++;
+		}
 		mainPower();
 	}
+
+//	if (millis() - masaVin >= 100 && kaliVcc<10) {
+//		masaVin = millis();
+//
+//		kaliVcc++;
+//	}
 
 	// ==> SET ALERT
 	int MinConnection = 0;
@@ -211,25 +228,33 @@ void loop()
 
 	// ==> BIIT
 	if (millis() - masaReboot >= 3600000) {
+		// 3600000
 		_oMando->setMulai(false);
 		_oLantern->setMulai(false);
 		delay(3000);
 		// repeat;
 		espReboot();
 		delay(3000);
-		ESP.restart();
+
+		if (millis() > 43200000) {
+			ESP.restart();
+			esp_task_wdt_init(1, true);
+			while(1){}
+		}
 
 
-//		if (millis() - _oMando->getMasaNmea() >= 3600000) {
-//			ESP.restart();
-//			delay(10);
-//		}
+
+		if (millis() - _oMando->getMasaNmea() >= 3600000) {
+			ESP.restart();
+			esp_task_wdt_init(1, true);
+			while(1){}
+		}
 //
-//		_oMando->reInit();
-//		_oLantern->reInit();
-//		_oMando->setMulai(true);
-//		_oLantern->setMulai(true);
-//		masaReboot = millis();
+		_oMando->reInit();
+		_oLantern->reInit();
+		_oMando->setMulai(true);
+		_oLantern->setMulai(true);
+		masaReboot = millis();
 
 	}
 
@@ -243,17 +268,56 @@ inline void getVcc() {
 	btStart();
 
 	int internalBatReading = rom_phy_get_vdd33();
-	Serial.println(internalBatReading);
-	_vcc = (float)(((uint32_t)internalBatReading*3.288)/6491);
-	log_i("Vin ????????????????????? === %f", _vcc);
+
 	btStop();
 
-	if (_vcc > 3.29) {
-		_vcc = 3;
-	}else if (_vcc < 3.19){
-		_vcc = 3.6;
+	adcVcc = rollAverage(adcVcc, internalBatReading, 5);
+
+	Serial.println(adcVcc);
+
+	_vcc = (float)(((uint32_t)adcVcc*3.2705)/6376.8223684211);
+	log_i("Vin ????????????????????? === %f", _vcc);
+	log_i("Runtime ????????????????????? === %d", millis()/1000);
+
+
+	if (_vcc < 3.24) {
+		_vcc = 3.35;
+	}else if(_vcc < 3.27) {
+		_vcc = 3.33;
 	}
+
+//	if (_vcc > 3.29) {
+//		_vcc = 3.2;
+//	}else if (_vcc < 3.19){
+//		_vcc = 3.4;
+//	}
 //	_vcc = 3.6;
+}
+
+inline float regress(float x) {
+	float terms[] = {
+			4.8886083576527604e+000,
+			3.3002897704362901e+000,
+			6.0827336333041991e+001,
+			-6.1426806811332511e+001
+	};
+
+	//	1.6323394277638523e+000,
+	//	2.9552288412061529e+001,
+	//	-9.0510913549455925e+000
+
+	//     4.8886083576527604e+000,
+	//    3.3002897704362901e+000,
+	//    6.0827336333041991e+001,
+	//   -6.1426806811332511e+001
+
+	float t = 1;
+	float r = 0;
+	for (float c : terms) {
+		r += c * t;
+		t *= x;
+	}
+	return r;
 }
 
 
@@ -271,13 +335,17 @@ void mainPower() {
 	adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_DB_11);
 	_oMando->rawBattery = adc1_get_raw(ADC1_CHANNEL_0);
 //	log_i("MVin raw === %g", _oMando->rawBattery);
-	adcBattery = rollAverage(adcBattery, _oMando->rawBattery, 100);
+	adcBattery = rollAverage(adcBattery, _oMando->rawBattery, 10);
 
-	_oMando->M6data.MVin = adcBattery/4095;
-	_oMando->M6data.MVin *= _vcc;
 
-	_oMando->M6data.MVin = _oMando->M6data.MVin * 22.6309669918;
-	_oMando->M6data.MVin += 3.3371091445;
+
+	float Vin =  adcBattery/4095;
+	Vin *= _vcc;
+
+	_oMando->M6data.MVin = regress(Vin);
+
+//	_oMando->M6data.MVin = _oMando->M6data.MVin * 22.6309669918;
+//	_oMando->M6data.MVin += 3.3371091445;
 //	log_i("MVin voltage >>>>>>>>>>>>>>>>>>> %g", _oMando->M6data.MVin);
 
 //	_oMando->M6data.MVin = adcBattery * 0.0147229551;
@@ -347,7 +415,8 @@ inline void setupSPIFFiles(bool freshSetup) {
 		locSpiff->deleteFile("/ssid.txt");
 		locSpiff->appendFile("/ssid.txt", "sta,ideapad,sawabatik1\n");
 		locSpiff->appendFile("/ssid.txt", "sta,AndroidAP,efdx6532\n");
-		locSpiff->appendFile("/ssid.txt", "sta,GF_Wifi_2.4GHz,Gr33nF1nd3r2018\n");
+//		locSpiff->appendFile("/ssid.txt", "sta,GF_Wifi_2.4GHz,Gr33nF1nd3r2018\n");
+		locSpiff->appendFile("/ssid.txt", "sta,GF-Technical-2.4Ghz,gr33nf1nd3r\n");
 //		locSpiff->appendFile("/ssid.txt", "ap,TestZippy,123qweasd\n");
 		locSpiff->appendFile("/ssid.txt", "ap,GreenFinderIOT,0xadezcsw1\n");
 	}
@@ -420,7 +489,7 @@ inline void espReboot() {
 
 	delete jsonHandler;
 
-//	ESP.restart();
+
 }
 
 inline void urusAlert() {
@@ -494,15 +563,15 @@ inline void urusConfig() {
 inline void urusAIS() {
 	// ==> CHECK AIS DEVICE AVAILABILITY
 
-	if (millis() - _oMando->getMasaNmea() >= 60000) {
-		_oServer->setAppCommPort("Not found");
-		jumpaAIS = false;
-		_oMando->reInit();
-	}
-	else {
-		_oServer->setAppCommPort("Found");
-		jumpaAIS = true;
-	}
+//	if (millis() - _oMando->getMasaNmea() >= 60000) {
+//		_oServer->setAppCommPort("Not found");
+//		jumpaAIS = false;
+//		_oMando->reInit();
+//	}
+//	else {
+//		_oServer->setAppCommPort("Found");
+//		jumpaAIS = true;
+//	}
 
 //	if (jumpaAIS) {
 //		if (_oLantern->getLanternTaskStat() == lt_Decision ) {
@@ -552,7 +621,7 @@ inline void urusAIS() {
 //	}
 
 //	 ==> SEND MSG 6
-	if (jumpaAIS && millis() - _oMando->_masaMando >= 60000) { //600000 // 180000
+	if (jumpaAIS && millis() - _oMando->_masaMando >= 180000) { //600000 // 180000
 		tungguVDO = true;
 		if (_oMando->_inputMandoVdo21 && powerOK) {
 			tungguLantern = true;

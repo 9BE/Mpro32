@@ -30,6 +30,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/A6/libraries/ArduinoOTA/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/A6/libraries/WebServer/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/A6/libraries/Update/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/A6/libraries/FreeRTOS/src}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.cpp.sketch.input.227060832" name="CPP source files" superClass="io.sloeber.compiler.cpp.sketch.input"/>
 							</tool>
@@ -46,6 +47,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/A6/libraries/ArduinoOTA/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/A6/libraries/WebServer/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/A6/libraries/Update/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/A6/libraries/FreeRTOS/src}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.c.sketch.input.980514175" name="C Source Files" superClass="io.sloeber.compiler.c.sketch.input"/>
 							</tool>
@@ -62,6 +64,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/A6/libraries/ArduinoOTA/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/A6/libraries/WebServer/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/A6/libraries/Update/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/A6/libraries/FreeRTOS/src}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.S.sketch.input.885139307" name="Assembly source files" superClass="io.sloeber.compiler.S.sketch.input"/>
 							</tool>
@@ -71,8 +74,19 @@
 							<tool id="io.sloeber.tool.size.1241739495" name="Arduino tool Print Size" superClass="io.sloeber.tool.size"/>
 						</toolChain>
 					</folderInfo>
+					<folderInfo id="io.sloeber.core.toolChain.release.977892767.1657828309" name="/" resourcePath="libraries/FreeRTOS">
+						<toolChain id="io.sloeber.core.toolChain.release.1234433217" name="Arduino Toolchain (Sloeber edition)" superClass="io.sloeber.core.toolChain.release" unusedChildren="">
+							<tool id="io.sloeber.tool.sketch.compiler.cpp.1030765813" name="Arduino C++ Compiler" superClass="io.sloeber.tool.sketch.compiler.cpp.1523090206"/>
+							<tool id="io.sloeber.tool.compiler.c.2107688108" name="Arduino C Compiler" superClass="io.sloeber.tool.compiler.c.2017348435"/>
+							<tool id="io.sloeber.tool.sketch.compiler.s.1142123218" name="Arduino Assembler" superClass="io.sloeber.tool.sketch.compiler.s.1052619938"/>
+							<tool id="io.sloeber.tool.ar.1243521903" name="Arduino archiver" superClass="io.sloeber.tool.ar.1809840973"/>
+							<tool id="io.sloeber.tool.combine.38670525" name="Arduino combiner" superClass="io.sloeber.tool.combine.1641168128"/>
+							<tool id="io.sloeber.tool.objcopy.eep.156678924" name="Arduino tool objcopy command" superClass="io.sloeber.tool.objcopy.eep.1659287182"/>
+							<tool id="io.sloeber.tool.size.1396284138" name="Arduino tool Print Size" superClass="io.sloeber.tool.size.1241739495"/>
+						</toolChain>
+					</folderInfo>
 					<sourceEntries>
-						<entry excluding="libraries/ModbusMaster/doc|libraries/?*/**/?xamples/**|libraries/?*/**/?xtras/**|libraries/?*/**/test*/**|libraries/?*/**/third-party/**|libraries/**/._*|libraries/?*/utility/*/*" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
+						<entry excluding="libraries/FreeRTOS|libraries/ModbusMaster/doc|libraries/?*/**/?xamples/**|libraries/?*/**/?xtras/**|libraries/?*/**/test*/**|libraries/?*/**/third-party/**|libraries/**/._*|libraries/?*/utility/*/*" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

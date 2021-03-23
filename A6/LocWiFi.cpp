@@ -63,12 +63,15 @@ void LocWiFi::_openConnection(int as) {
 			}
 			if( ((data.at(0) == "apsta") || (data.at(0) == "ap")) && (as != lw_wifi_sta) ){
 				log_i("AP ...");
-				board * Board;
-				Board = new board;
-				WiFi.softAP(data.at(1).c_str(), data.at(2).c_str(), Board->getChannel()); //Board->getChannel()
-				delete Board;
-				_dahAP = true;
-				log_i("IP=%s", WiFi.softAPIP().toString().c_str());
+				if (!_dahAP) {
+					board * Board;
+					Board = new board;
+					WiFi.softAP(data.at(1).c_str(), data.at(2).c_str(), Board->getChannel()); //Board->getChannel()
+					delete Board;
+					_dahAP = true;
+					log_i("IP=%s", WiFi.softAPIP().toString().c_str());
+				}
+
 			}
 		}
 		if(staFlag){
@@ -91,13 +94,17 @@ void LocWiFi::loop(void* parameter) {
 		switch (*iniWiFi->_lookVal) {
 			case lw_wifi_ap:
 				iniWiFi->_openConnection(lw_wifi_ap);
+				*iniWiFi->_lookVal = 0;
 				break;
 			case lw_wifi_sta:
-				iniWiFi->_openConnection(lw_wifi_sta);
+				if (!WiFi.isConnected()) {
+					iniWiFi->_openConnection(lw_wifi_sta);
+				}
 				break;
 			case lw_wifi_apsta:
-				iniWiFi->_openConnection(lw_wifi_apsta);
-
+				if (!WiFi.isConnected()) {
+					iniWiFi->_openConnection(lw_wifi_apsta);
+				}
 				break;
 			case lw_wifi_off:
 

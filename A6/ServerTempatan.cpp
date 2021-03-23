@@ -192,6 +192,7 @@ void ServerTempatan::StatusViaWiFi() {
 	msg += "</br>";
 //	msg += "Actual = " + String(Ais.actual) + "</br>";
 ////	msg += "Temp = " + String((temprature_sens_read() - 32) / 1.8) + "</br>";
+
 	msg += "Activity = ";
 	msg += iniServer->alert;
 	msg += "</br>";
@@ -241,6 +242,12 @@ void ServerTempatan::StatusViaWiFi() {
 //	msg += iniServer->AppCommPort;
 //	msg += "</br>";
 	msg += ">>> MANDO >>> </br>";
+	msg += "Sitename = ";
+	msg += iniServer->_oMando->_mConfig.MName;
+	msg += "</br>";
+	msg += "MMSI = ";
+	msg += iniServer->_oMando->_mConfig.MMmsi;
+	msg += "</br>";
 	msg += "Aton Bit = ";
 	msg += iniServer->_oMando->ProcAtonbit_prev;
 	msg += "</br>";
@@ -381,7 +388,7 @@ String ServerTempatan::makeJson() {
 		}
 
 		jkl = String(millis() / 1000);
-		jsonHandler->tambahRow(rows, "1", "2", "Runtime\nBeat", String(millis() / 1000) + "\n" + wkl); // "/" + String((3600000-millis()) / 1000) +
+		jsonHandler->tambahRow(rows, "1", "2", "Runtime/TimeUp\nBeat", String(millis() / 1000) + "/" + String(43200000) + "\n" + wkl); // "/" + String((3600000-millis()) / 1000) +
 	}
 	else {
 		jkl = "";
@@ -411,7 +418,7 @@ String ServerTempatan::makeJson() {
 			wkl = _oMando->SpiffsData.Beat;
 		}
 
-		jsonHandler->tambahRow(rows, "1", "2", "Runtime\nBeat\nClock", String(millis() / 1000) + "\n" + wkl + "\n" + jkl); //+ "/" + String((3600000-millis()) / 1000)
+		jsonHandler->tambahRow(rows, "1", "2", "Runtime/TimeUp\nBeat\nClock", String(millis() / 1000) + "/" + String(43200000) + "\n" + wkl + "\n" + jkl); //+ "/" + String((3600000-millis()) / 1000)
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////

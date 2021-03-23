@@ -45,6 +45,7 @@ void Mando::loop(void* param) {
 
 				if (cr == 13) {
 
+					log_i("_mandoRaw ::: %s", iniMando->_mandoRaw.c_str());
 					iniMando->_mandoRaw.trim();
 					iniMando->processMandoData();
 
@@ -53,6 +54,7 @@ void Mando::loop(void* param) {
 				}
 
 			}
+
 		}
 
 		if (iniMando->_nmea.length() > 3000) {
@@ -354,7 +356,7 @@ void Mando::hantarDataMando() {
 //			log_i("ACE =============== $ECAIQ,ACE*34 :: at %d", millis());
 
 			iniMando->_runCtr = millis();
-			_hantarDelay = 1500;
+			_hantarDelay = 5000;
 		}
 		else if (mandoTask == ACF) {
 			Serial2.println("$ECAIQ,ACF*37");
@@ -363,7 +365,7 @@ void Mando::hantarDataMando() {
 			log_i("ACF =============== $ECAIQ,ACF*37 :: at %d", millis());
 
 			iniMando->_runCtr = millis();
-			_hantarDelay = 1500;
+			_hantarDelay = 5000;
 		}
 		else if (mandoTask == VER) {
 			Serial2.println("$ECAIQ,VER*32");
@@ -372,7 +374,7 @@ void Mando::hantarDataMando() {
 			log_i("VER =============== $ECAIQ,VER*32 :: at %d", millis());
 
 			iniMando->_runCtr = millis();
-			_hantarDelay = 1500;
+			_hantarDelay = 5000;
 		}
 		else if (mandoTask == AAR06) {
 			Serial2.println("$ECAIQ,AAR*21");
@@ -381,7 +383,7 @@ void Mando::hantarDataMando() {
 			log_i("AAR 06 =============== $ECAIQ,AAR*21 :: at %d", millis());
 
 			iniMando->_runCtr = millis();
-			_hantarDelay = 1500;
+			_hantarDelay = 5000;
 		}
 		else if (mandoTask == AAR21) {
 			Serial2.println("$ECAIQ,AAR*21");
@@ -390,7 +392,7 @@ void Mando::hantarDataMando() {
 			log_i("AAR 21 =============== $ECAIQ,AAR*21 :: at %d", millis());
 
 			iniMando->_runCtr = millis();
-			_hantarDelay = 1500;
+			_hantarDelay = 5000;
 		}
 		else if (mandoTask == SendBIT) {
 			log_i(" )()()()()()()()()()()()()()()()(()()()()()()() checkAtonBit() at %d", millis());
